@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <title>Resume - Start Bootstrap Theme</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Saira+Extra+Condensed:500,700" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Muli:400,400i,800,800i" rel="stylesheet">
+  <link href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" rel="stylesheet">
+  <link href="public/css/overview.css" rel="stylesheet">
+  {% if (action == 'create' or action == 'edit' or action == 'invite') %}
+  <link href="public/css/createWeddingForm.css" rel="stylesheet">
+  {% endif %}
+</head>
+
+<body id="page-top">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top" id="sideNav">
+    <a class="navbar-brand js-scroll-trigger" href="#page-top">
+      <span class="d-block d-lg-none">Clarence Taylor</span>
+      <span class="d-none d-lg-block">
+        <img class="img-fluid img-profile rounded-circle mx-auto mb-2" src="public/img/profileimg/test.jpg" alt="">
+      </span>
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link js-scroll-trigger" id="uitloggen" href="#">Uitloggen</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link js-scroll-trigger" href="/bruiden">Wishlist</a>
+        </li>
+        {% if hasWedding %}
+        <li class="nav-item">
+          <a class="nav-link js-scroll-trigger" href="/bruiden?action=bewerken">Bewerk bruiloft</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link js-scroll-trigger" href="/bruiden?action=uitnodigen">Uitnodigen</a>
+        </li>
+        {% endif %}
+
+      </ul>
+    </div>
+  </nav>
+
+  <div class="container-fluid p-0">
+  {% if action == 'edit' %}
+  {% include 'modifyWedding.twig' %}
+  {% endif %}
+  {% if action  == 'create' %}
+  {% include 'createWedding.twig' %}
+  {% endif %}
+  {% if action == 'home' %}
+  {% include 'editWedding.twig' %}
+  {% endif %}
+  {% if action == 'invite' %}
+  {% include 'invite.twig' %}
+  {% endif %}
+
+  
+
+  </div>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="public/js/overview.js"></script>
+</body>
+
+</html>

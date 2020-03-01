@@ -8,44 +8,17 @@
         public $id;
         public $date;
         public $invitecode;
-        public $kados;
+        public $kados = array();
         private $conn;
 
         function __construct()
         {
-            if(func_num_args() == 1) {
-                $this->connect();
-                $query = "SELECT * FROM bruiloften WHERE userid=? LIMIT 1";
-                $stmt = $this->conn->prepare($query);
-                $stmt->execute([func_get_arg(0)]);
-                $weddingFound = $stmt->rowCount() == 1;
-                if($weddingFound) {
-                    $wedding = $stmt->fetch(PDO::FETCH_ASSOC);
-                    $this->id = $wedding['id'];
-                    $this->userid = $wedding['userid'];
-                    $this->person1 = $wedding['person1'];
-                    $this->person2 = $wedding['person2'];
-                    $this->date = $wedding['date'];
-                    $this->invitecode = $wedding['invitecode'];
-                }
-                $this->disconnect();
-            }
-        }
-
-        private function connect()
-        {
-            $db = new Database();
+            $db =new Database();
             $this->conn = $db->conn;
-        }
-
-        private function disconnect()
-        {
-            $this->conn = null;
         }
 
         public function create()
         {
-            $this->connect();
             $this->generateInvitecode();
             $query = "INSERT INTO bruiloften(userid, person1, person2, date, invitecode) VALUES (:userid, :person1, :person2, :date, :invitecode)";
             $stmt = $this->conn->prepare($query);
@@ -55,6 +28,34 @@
             $stmt->bindValue(':date', $this->date);
             $stmt->bindValue(':invitecode', $this->invitecode);
             return $stmt->execute();
+        }
+
+        public function getWedding($getBy)
+        {
+            switch($getBy) {
+                case 'user':
+                    $query = "SELECT * FROM bruiloften WHERE userid=? LIMIT 1";
+                    $param = [$this->userid];
+                    break;
+                case 'id':
+                    $query = "SELECT * FROM bruiloften WHERE id=? LIMIT 1";
+                    $param = [$this->id];
+                    break;
+                default:
+                    return false;
+            }
+            $stmt = $this->conn->prepare($query);
+            $stmt->execute($param);
+            if($stmt->rowCount() != 1) return false;
+            $wedding = $stmt->fetch(PDO::FETCH_ASSOC);
+            $this->id = $wedding['id'];
+            $this->userid = $wedding['userid'];
+            $this->person1 = $wedding['person1'];
+            $this->person2 = $wedding['person2'];
+            $this->date = $wedding['date'];
+            $this->invitecode = $wedding['invitecode'];
+            $this->getKados();
+            return true;
         }
 
         private function generateInvitecode() {
@@ -68,31 +69,17 @@
         }
         function validateWeddingCode()
         {
-            $this->connect();
             $query = "SELECT * from bruiloften WHERE invitecode=? LIMIT 1";
             $stmt = $this->conn->prepare($query);
             $stmt->execute([$this->invitecode]);
-            $weddingCodeValide = $stmt->rowCount() == 1;
-            if($weddingCodeValide) {
-                $wedding = $stmt->fetch(PDO::FETCH_ASSOC);
-                $this->id = $wedding['id'];
-                $this->userid = $wedding['userid'];
-                $this->person1 = $wedding['person1'];
-                $this->person2 = $wedding['person2'];
-                $this->date = $wedding['date'];
-                $this->disconnect();
-                return true;
-            } else {
-                $this->invitecode = null;
-                $this->disconnect();
-                return false;
-            }
+            if($stmt->rowCount() != 1) return false;
+            $wedding = $stmt->fetch(PDO::FETCH_ASSOC);
+            $this->id = $wedding['id'];
+            return true;
         }
 
         public function getKados()
         {
-            $this->kados = array();
-            $this->connect();
             $query = "SELECT * FROM kados WHERE bruiloftID=? ORDER BY kados.order";
             $stmt = $this->conn->prepare($query);
             $stmt->execute([$this->id]);
@@ -106,7 +93,6 @@
                 $kado->order = $row['order'];
                 array_push($this->kados, $kado);
             }
-            $this->disconnect();
         }
     }
 

@@ -3,6 +3,7 @@ require_once 'vendor/autoload.php';
 require_once 'database.php';
 require_once 'objects/user.php';
 session_start();
+//var_dump($_SESSION);
 $db = new Database('localhost', 'bruiden', 'root', 'rootroot');
 $conn = $db->conn;
 $loader = new \Twig\Loader\FilesystemLoader('views');
@@ -11,22 +12,22 @@ $renderOptions = array();
 
 if(isset($_GET['code'])) checkWedding();
 
-if (empty($_SESSION['user']) && empty($_SESSION['visitWedding'])) render("login.twig", []);
-if (isset($_SESSION['user'])) handleUser();
-if (isset($_SESSION['visitWedding'])) handleVisitWedding();
+if (empty($_SESSION['userID']) && empty($_SESSION['weddingID'])) showLogin();
+if (isset($_SESSION['userID'])) handleUser();
+if (isset($_SESSION['weddingID'])) handleVisitWedding();
 
 function handleUser()
 {
   global $renderOptions;
-  $user = $_SESSION['user'];
-  $user->updateWedding();
+  $user = new User();
+  $user->id = $_SESSION['userID'];
+  if($user->getUser() == false) showLogin();
   $renderOptions['naam'] = $user->gebruikersnaam;
 
   // gebruiker actief, maar geen bruiloft bekend
   if ($user->wedding == null) render('base.twig', ['action' => 'create']);
 
   // bruiloft bekend
-  $user->wedding->getKados();
   $renderOptions['hasWedding'] = true;
   $renderOptions['person1'] = $user->wedding->person1;
   $renderOptions['person2'] = $user->wedding->person2;
@@ -47,8 +48,9 @@ function handleUser()
 function handleVisitWedding()
 {
   global $renderOptions;
-  $wedding = $_SESSION['visitWedding'];
-  $wedding->getKados();
+  $wedding = new Wedding();
+  $wedding->id = $_SESSION['weddingID'];
+  if($wedding->getWedding('id') == false) showLogin();
   $renderOptions['person1'] = $wedding->person1;
   $renderOptions['person2'] = $wedding->person2;
   $renderOptions['date'] = $wedding->date;
@@ -61,7 +63,14 @@ function checkWedding()
 {
   $wedding = new Wedding();
   $wedding->invitecode = $_GET['code'];
-  if($wedding->validateWeddingCode()) $_SESSION['visitWedding'] = $wedding;
+  if($wedding->validateWeddingCode()) $_SESSION['weddingID'] = $wedding->id;
+}
+
+function showLogin()
+{
+  $_SESSION = array();
+  session_destroy();
+  render("login.twig", []);
 }
 
 

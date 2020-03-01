@@ -25,9 +25,11 @@ require_once 'objects/wedding.php';
 session_start();
 
 if($data->method == 'inloggen') {
-    $user = new User($data->gebruikersnaam, $data->wachtwoord);
+    $user = new User();
+    $user->gebruikersnaam = $data->gebruikersnaam;
+    $user->password = $data->wachtwoord;
     if($user->validateUser()) {
-        $_SESSION['user'] = $user;
+        $_SESSION['userID'] = $user->id;
         http_response_code(200);
         echo json_encode(array('status' => 'successful'));
     } else {
@@ -36,10 +38,12 @@ if($data->method == 'inloggen') {
 }
 
 if($data->method == 'registreren') {
-    $user = new User($data->gebruikersnaam, $data->wachtwoord);
+    $user = new User();
+    $user->gebruikersnaam = $data->gebruikersnaam;
+    $user->password = $data->wachtwoord;
     $user->emailadres = $data->email;
     if($user->createUser()) {
-        $_SESSION['user'] = $user;
+        $_SESSION['userID'] = $user->id;
         http_response_code(200);
         echo json_encode(array('status' => 'successful'));
     } else {
@@ -51,7 +55,7 @@ if($data->method == 'uitnodigingscode') {
     $wedding = new Wedding();
     $wedding->invitecode = $data->code;
     if($wedding->validateWeddingCode()) {
-        $_SESSION['visitWedding'] = $wedding;
+        $_SESSION['weddingID'] = $wedding->id;
         http_response_code(200);
         echo json_encode(array('status' => 'successful'));
     } else {

@@ -132,13 +132,13 @@
     color: #888; }
   
   .term-service {
-    color: #1da0f2;
+    color: #f30186;
     text-decoration: none; }
     .term-service:hover {
       text-decoration: underline; }
   
   .submit {
-    background: #1da0f2;
+    background: #f30186;
     color: #FFF;
     border: none;
     padding: 15px 20px;
@@ -151,7 +151,7 @@
     -o-border-radius: 5px;
     -ms-border-radius: 5px; }
     .submit:hover {
-      background: #0c85d0; }
+      background: #d6137e; }
   
   .loginhere {
     text-align: center;

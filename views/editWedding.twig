@@ -1,14 +1,29 @@
 <section class="resume-section p-3 p-lg-5 d-flex align-items-center" id="about">
-    <div class="w-100">
-      <h1 class="mb-0 text-center">Hallo
-        <span class="text-primary text-center">{{ naam }}</span>
-      </h1>
-      <div class="subheading mb-5 text-center">Welkom terug!</div>
-      <p class="lead mb-5 text-center">Bewerk hier de bruiloft van {{ person2 }} en jou.</p>
-    </div>
-  </section>
+  <div class="w-100">
+    <h1 class="mb-0 text-center">Hallo
+      <span class="text-primary text-center">{{ naam }}</span>
+    </h1>
+    <div class="subheading mb-5 text-center">Welkom terug!</div>
+    <p class="lead mb-5 text-center">Bewerk hier de bruiloft van {{ person2 }} en jou.</p>
+  </div>
+</section>
 
-  <section class="resume-section p-3 p-lg-5 d-flex justify-content-center" id="experience">
-    
-  </section>
 
+<table class="table table-stripped table-hover table-border" id="wishlistTable">
+  <thead>
+    <tr>
+      <td>Naam</td>
+      <td>Beschrijving</td>
+    </tr>
+  </thead>
+  <tbody>
+    {% for kado in kados %}
+    <tr data-index="{{ kado.id }}" data-positie="{{ kado.order }}">
+      <td>{{kado.naam}}</td>
+      <td>{{kado.beschrijving}}</td>
+      <td><button class="verwijderKado" data-index="{{ kado.id }}">Verwijder</button></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</section>

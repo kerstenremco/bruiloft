@@ -1,12 +1,14 @@
 <?php
     require_once './database.php';
+    require_once 'kado.php';
     class Wedding {
         public $userid;
         public $person1;
         public $person2;
         public $id;
         public $date;
-        private $invitecode;
+        public $invitecode;
+        public $kados;
         private $conn;
 
         function __construct()
@@ -64,5 +66,49 @@
             }
             $this->invitecode = $randomString;
         }
+        function validateWeddingCode()
+        {
+            $this->connect();
+            $query = "SELECT * from bruiloften WHERE invitecode=? LIMIT 1";
+            $stmt = $this->conn->prepare($query);
+            $stmt->execute([$this->invitecode]);
+            $weddingCodeValide = $stmt->rowCount() == 1;
+            if($weddingCodeValide) {
+                $wedding = $stmt->fetch(PDO::FETCH_ASSOC);
+                $this->id = $wedding['id'];
+                $this->userid = $wedding['userid'];
+                $this->person1 = $wedding['person1'];
+                $this->person2 = $wedding['person2'];
+                $this->date = $wedding['date'];
+                $this->disconnect();
+                return true;
+            } else {
+                $this->invitecode = null;
+                $this->disconnect();
+                return false;
+            }
+        }
+
+        public function getKados()
+        {
+            $this->kados = array();
+            $this->connect();
+            $query = "SELECT * FROM kados WHERE bruiloftID=? ORDER BY kados.order";
+            $stmt = $this->conn->prepare($query);
+            $stmt->execute([$this->id]);
+            while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $kado = new Kado();
+                $kado->id = $row['id'];
+                $kado->bruiloftID = $row['bruiloftID'];
+                $kado->naam = $row['naam'];
+                $kado->beschrijving = $row['beschrijving'];
+                $kado->img = $row['img'];
+                $kado->order = $row['order'];
+                array_push($this->kados, $kado);
+            }
+            $this->disconnect();
+        }
     }
+
+    
 ?>

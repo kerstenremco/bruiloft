@@ -32,45 +32,48 @@
         <li class="nav-item">
           <a class="nav-link js-scroll-trigger" id="uitloggen" href="#">Uitloggen</a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link js-scroll-trigger" href="/bruiden">Wishlist</a>
-        </li>
-        {% if hasWedding %}
-        <li class="nav-item">
-          <a class="nav-link js-scroll-trigger" href="/bruiden?action=bewerken">Bewerk bruiloft</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link js-scroll-trigger" href="/bruiden?action=uitnodigen">Uitnodigen</a>
-        </li>
-        {% endif %}
 
       </ul>
     </div>
   </nav>
 
   <div class="container-fluid p-0">
-  {% if action == 'edit' %}
-  {% include 'modifyWedding.twig' %}
-  {% endif %}
-  {% if action  == 'create' %}
-  {% include 'createWedding.twig' %}
-  {% endif %}
-  {% if action == 'home' %}
-  {% include 'editWedding.twig' %}
-  {% endif %}
-  {% if action == 'invite' %}
-  {% include 'invite.twig' %}
-  {% endif %}
-
+    <section class="resume-section p-3 p-lg-5 d-flex align-items-center" id="about">
+        <div class="w-100">
+          <h1 class="mb-0 text-center">
+            <span class="text-primary text-center">Welkom!</span>
+          </h1>
+          <div class="subheading mb-5 text-center">Fijn dat je er bent!</div>
+          <p class="lead mb-5 text-center">Bekijk hier de wishlist van {{person1}} en {{ person2 }}.</p>
+        </div>
+      </section>
+    
+      <section class="resume-section p-3 p-lg-5 d-flex justify-content-center" id="experience">
+        <table class="table table-stripped table-hover table-border" id="wishlistTable">
+          <thead>
+            <tr>
+              <td>Naam</td>
+              <td>Beschrijving</td>
+            </tr>
+          </thead>
+          <tbody>
+            {% for kado in kados %}
+            <tr data-index="{{ kado.id }}" data-positie="{{ kado.order }}">
+              <td>{{kado.naam}}</td>
+              <td>{{kado.beschrijving}}</td>
+              <td><button class="verwijderKado" data-index="{{ kado.id }}">Verwijder</button></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
+    
+    
   
 
   </div>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-  <script
-  src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"
-  integrity="sha256-eGE6blurk5sHj+rmkfsGYeKyZx3M4bG+ZlFyA7Kns7E="
-  crossorigin="anonymous"></script>
   <script src="public/js/overview.js"></script>
 </body>
 

@@ -34,6 +34,7 @@ function handleUser()
   $renderOptions['date'] = $user->wedding->date;
   $renderOptions['invitecode'] = $user->wedding->invitecode;
   $renderOptions['kados'] = $user->wedding->kados;
+  $renderOptions['linkingcode'] = $user->wedding->linkingcode;
 
   // gebruiker en bruiloft bekend, request naar bewerk bruiloft
   if (isset($_GET['action']) && $_GET['action'] == 'bewerken') render('base.twig', ['action' => 'edit']);
@@ -55,7 +56,6 @@ function handleVisitWedding()
   $renderOptions['person2'] = $wedding->person2;
   $renderOptions['date'] = $wedding->date;
   $renderOptions['kados'] = $wedding->kados;
-
   render('guest.twig', ['action' => 'home']);
 }
 

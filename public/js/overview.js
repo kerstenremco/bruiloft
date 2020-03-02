@@ -30,6 +30,21 @@ $(document).ready(() => {
         })
     })
 
+    $('#weddingFormSwitch').on('click', function() {
+        currentMode = $('#weddingForm').attr('data-mode');
+        if(currentMode == 'create') {
+            $('#weddingForm').attr('data-mode', 'link');
+            $('#weddingFormLink').removeClass('hidden');
+            $('#weddingFormCreate').addClass('hidden');
+            $('#weddingFormSwitch').html('Ik wil een nieuwe bruiloft aanmaken');
+        } else {
+            $('#weddingForm').attr('data-mode', 'create');
+            $('#weddingFormCreate').removeClass('hidden');
+            $('#weddingFormLink').addClass('hidden');
+            $('#weddingFormSwitch').html('Ik heb een koppelcode');
+        }
+    })
+
     $('#weddingForm').submit((e) => {
         e.preventDefault();
         data = new Object();

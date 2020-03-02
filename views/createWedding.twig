@@ -1,19 +1,12 @@
-<section class="resume-section p-3 p-lg-5 d-flex align-items-center" id="about">
-    <div class="w-100">
-      <h1 class="mb-0 text-center">Hallo
-        <span class="text-primary text-center">{{ naam }}</span>
-      </h1>
-      <div class="subheading mb-5 text-center">Je hebt nog geen bruiloft aangemaakt!</div>
-      <p class="lead mb-5 text-center">Maak met onderstaand formulier direct een bruiloft aan en nodig deelnemers uit.</p>
-    </div>
-  </section>
+
 
   <section class="resume-section p-3 p-lg-5 d-flex justify-content-center" id="experience">
     <div class="sign-up-content">
-        <form method="POST" id="weddingForm" class="signup-form">
+        <form method="POST" id="weddingForm" class="signup-form" data-mode="create">
             <h2 class="form-title">Vertel ons over je bruiloft!</h2>
-
-            <div class="form-textbox">
+            <button id="weddingFormSwitch" class="submit">Ik heb een koppelcode</button>
+            <div id="weddingFormCreate">
+                <div class="form-textbox">
                 <label for="name">Jouw naam</label>
                 <input type="text" name="person1" id="person1" />
             </div>
@@ -28,14 +21,21 @@
                 <input type="text" name="date" id="date" placeholder="dd-mm-jjjj"/>
             </div>
 
-            <div class="form-group">
-                <input type="checkbox" name="agree-term" id="agree-term" class="agree-term" />
-                <label for="agree-term" class="label-agree-term"><span><span></span></span>Ik accepteer de <a href="#" class="term-service">voorwaarden</a></label>
-            </div>
-
             <div class="form-textbox">
                 <input type="submit" name="submit" id="regWeddingButton" class="submit" value="Registreer bruiloft" />
             </div>
+            </div>
+            <div id="weddingFormLink" class="hidden">
+                <div class="form-textbox">
+                <label for="name">Koppelcode</label>
+                <input type="text" name="person1" id="person1" />
+            </div>
+
+            <div class="form-textbox">
+                <input type="submit" name="submit" id="regWeddingButton" class="submit" value="Koppel bruiloft" />
+            </div>
+            </div>
+        
         </form>
     </div>
   </section>

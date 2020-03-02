@@ -1,22 +1,23 @@
 <?php
 header('Content-Type: application/json');
 require_once 'helper/error.php';
-if($_SERVER['REQUEST_METHOD'] !== "POST") sendError('Alleen POST toegestaan');
+require_once 'helper/sendSuccessHttp.php';
+if($_SERVER['REQUEST_METHOD'] !== "POST") sendError('Alleen POST toegestaan', 405);
 $data = json_decode( file_get_contents('php://input') );
 switch($data->method) {
     case 'uitnodigingscode':
-        if(!isset($data->code)) sendError('Niet alle velden zijn ingevuld!');
+        if(!isset($data->code)) sendError('Niet alle velden zijn ingevuld!', 400);
         break;
     case 'inloggen':
-        if(!(isset($data->gebruikersnaam) && isset($data->wachtwoord))) sendError('Niet alle velden zijn ingevuld!');
+        if(!(isset($data->gebruikersnaam) && isset($data->wachtwoord))) sendError('Niet alle velden zijn ingevuld!', 400);
         break;
     case 'registreren':
-        if(!(isset($data->gebruikersnaam) && isset($data->wachtwoord) && isset($data->wachtwoord2) && isset($data->email))) sendError('Niet alle velden zijn ingevuld!');
+        if(!(isset($data->gebruikersnaam) && isset($data->wachtwoord) && isset($data->wachtwoord2) && isset($data->email))) sendError('Niet alle velden zijn ingevuld!', 400);
         break;
     case 'uitloggen':
     break;
     default:
-        sendError('Onbekende methode');
+        sendError('Onbekende methode', 400);
         break;
 };
 
@@ -28,12 +29,11 @@ if($data->method == 'inloggen') {
     $user = new User();
     $user->gebruikersnaam = $data->gebruikersnaam;
     $user->password = $data->wachtwoord;
-    if($user->validateUser()) {
+    if ($user->validateUser()) {
         $_SESSION['userID'] = $user->id;
-        http_response_code(200);
-        echo json_encode(array('status' => 'successful'));
+        sendSuccessHttp();
     } else {
-        sendError('Gebruiker niet gevonden');
+        sendError();
     }
 }
 
@@ -44,29 +44,23 @@ if($data->method == 'registreren') {
     $user->emailadres = $data->email;
     if($user->createUser()) {
         $_SESSION['userID'] = $user->id;
-        http_response_code(200);
-        echo json_encode(array('status' => 'successful'));
+        sendSuccessHttp();
     } else {
-        sendError('Gebruiker niet gevonden');
+        sendError();
     }
 }
 
 if($data->method == 'uitnodigingscode') {
     $wedding = new Wedding();
     $wedding->invitecode = $data->code;
-    if($wedding->validateWeddingCode()) {
-        $_SESSION['weddingID'] = $wedding->id;
-        http_response_code(200);
-        echo json_encode(array('status' => 'successful'));
-    } else {
-        sendError('Ongeldige code');
-    }
+    if($wedding->validateWeddingCode() == false) sendError();
+    $_SESSION['weddingID'] = $wedding->id;
+    sendSuccessHttp();
 }
 
 if($data->method == 'uitloggen') {
     $_SESSION = array();
     session_destroy();
-    http_response_code(200);
-    echo json_encode(array('status' => 'successful'));
+    sendSuccessHttp();
 }
 ?>

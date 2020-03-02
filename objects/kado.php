@@ -1,5 +1,6 @@
 <?php
 require_once './database.php';
+require_once './objects/wedding.php';
 $database = new Database();
     class Kado {
         public $id;
@@ -28,10 +29,31 @@ $database = new Database();
         }
         public function delete()
         {
-            $query = "DELETE FROM kados WHERE id=?";
+            global $errorMessage, $errorCode;
+            $wedding = new Wedding();
+            $wedding->userid = $_SESSION['userID'];
+            if ($wedding->getWedding('user') == false) {
+                $errorMessage = 'Er is geen bruiloft bekend bij deze gebruiker';
+                $errorCode = 404;
+                return false;
+            }
+            $query = "SELECT * FROM kados WHERE id=? AND bruiloftID=? LIMIT 1";
             $stmt = $this->conn->prepare($query);
-            $result = $stmt->execute([$this->id]);
-            return $result;
+            $stmt->execute([$this->id, $wedding->id]);
+            if($stmt->rowCount() !== 1) {
+                $errorMessage = 'Kado niet gevonden';
+                $errorCode = 404;
+                return false;
+            }
+            $query = "DELETE FROM kados WHERE id=? AND bruiloftID=?";
+            $stmt = $this->conn->prepare($query);
+            $result = $stmt->execute([$this->id, $wedding->id]);
+            if($result == false) {
+                $errorMessage = 'Cadeau kan niet worden verwijderd';
+                $errorCode = 503;
+                return false;
+            }
+            return true;
         }
     }
 

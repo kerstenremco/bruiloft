@@ -1,17 +1,22 @@
 <?php
 header('Content-Type: application/json');
 require_once './objects/wedding.php';
+require_once './objects/kado.php';
 require_once './objects/user.php';
 require_once 'helper/error.php';
-if ($_SERVER['REQUEST_METHOD'] !== "POST") sendError('Alleen POST toegestaan!');
+require_once 'helper/sendSuccessHttp.php';
+if ($_SERVER['REQUEST_METHOD'] !== "POST") sendError('Alleen POST toegestaan!', 405);
 session_start();
-if (empty($_SESSION) || empty($_SESSION['userID'])) sendError('Niet ingelogd');
+if (empty($_SESSION) || empty($_SESSION['userID'])) sendError('Niet ingelogd', 401);
 $data = json_decode(file_get_contents('php://input'));
-if (empty($data->method)) sendError('Geen methode meegegeven');
+if (empty($data->method)) sendError('Geen methode meegegeven', 400);
 
 switch ($data->method) {
     case 'create':
         handleCreate();
+        break;
+    case 'linkpartner':
+        handleLinkPartner();
         break;
     case 'updateOrder':
         handleUpdateOrder();
@@ -29,19 +34,13 @@ switch ($data->method) {
 function handleCreate()
 {
     global $data;
-    if ((!isset($data->person1) || !isset($data->person2) || !isset($data->date))) sendError('Niet alle velden ingevuld');
+    if ((!isset($data->person1) || !isset($data->person2) || !isset($data->date))) sendError('Niet alle velden ingevuld', 400);
     $wedding = new Wedding();
     $wedding->userid = $_SESSION['userID'];
     $wedding->person1 = $data->person1;
     $wedding->person2 = $data->person2;
     $wedding->date = $data->date;
-    if ($wedding->create()) {
-        http_response_code(200);
-        echo json_encode(array('status' => 'successful'));
-    } else {
-        http_response_code(401);
-        echo json_encode(array('status' => 'fail', 'message' => 'Bruiloft kan niet worden aangemaakt'));
-    }
+    $wedding->create() ? sendSuccessHttp() : sendError();
 }
 
 function handleUpdateOrder()
@@ -49,7 +48,7 @@ function handleUpdateOrder()
     global $data;
     $wedding = new Wedding();
     $wedding->userid = $_SESSION['userID'];
-    if ($wedding->getWedding('user') == false) sendError('Er is geen bruiloft aan dit account gekoppeld.');
+    if ($wedding->getWedding('user') == false) sendError();
     $kados = $wedding->kados;
     foreach ($data->order as $item) {
         $index = $item[0];
@@ -61,26 +60,24 @@ function handleUpdateOrder()
             }
         }
     }
-    http_response_code(200);
-    echo json_encode(array('status' => 'successful'));
+    sendSuccessHttp();
 }
 
 function handleDeleteKado()
 {
     global $data;
+    $kado = new Kado();
+    $kado->id = $data->id;
+    $kado->delete() ? sendSuccessHttp() : sendError();
+}
+
+function handleLinkPartner()
+{
+    global $data;
     $wedding = new Wedding();
-    $wedding->userid = $_SESSION['userID'];
-    if ($wedding->getWedding('user') == false)  sendError('Er is geen bruiloft aan dit account gekoppeld.');
-    $kados = $wedding->kados;
-    foreach ($kados as $kado) {
-        if ($kado->id == $data->id) {
-            if ($kado->delete() == false) sendError('Kado kan niet worden verwijderd.');
-            http_response_code(200);
-            echo json_encode(array('status' => 'successful'));
-            die();
-        }
-    }
-    sendError('Kado kan gevonden.');
+    $wedding->partneruserid = $_SESSION['userID'];
+    $wedding->linkingcode = $data->linkingcode;
+    $wedding->connectToPartner() ? sendSuccessHttp() : sendError();
 }
 
 function handleSendInvite()
@@ -89,7 +86,7 @@ function handleSendInvite()
     global $data;
     $wedding = new Wedding();
     $wedding->userid = $_SESSION['userID'];
-    if ($wedding->getWedding('user') == false)  sendError('Er is geen bruiloft aan dit account gekoppeld.');
+    if ($wedding->getWedding('user') == false)  sendError();
     try {
         // Create the SMTP transport
         $transport = (new Swift_SmtpTransport('smtp.mailtrap.io', 2525))
@@ -111,9 +108,8 @@ function handleSendInvite()
         $message->addPart('Je persoonlijke code om in te loggen is <b>' . $wedding->invitecode . '</b>', 'text/html');
         // Send the message
         $result = $mailer->send($message);
-        http_response_code(200);
-        echo json_encode(array('status' => 'successful'));
+        sendSuccessHttp();
     } catch (Exception $e) {
-        sendError('Maildienst buiten gebruik');
+        sendError('Maildienst buiten gebruik', 503);
     }
 }

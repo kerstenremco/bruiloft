@@ -3,7 +3,7 @@ $(document).ready(() => {
         $.ajax({
             url: 'login.php',
             method: "POST",
-            data: JSON.stringify({method: 'uitloggen'})
+            data: JSON.stringify({method: 'logout'})
         }).done(res => {
             if(res.status === "successful") {
                 location.replace('/bruiden');

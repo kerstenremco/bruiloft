@@ -1,66 +1,85 @@
 <?php
 header('Content-Type: application/json');
-require_once 'helper/error.php';
-require_once 'helper/sendSuccessHttp.php';
-if($_SERVER['REQUEST_METHOD'] !== "POST") sendError('Alleen POST toegestaan', 405);
-$data = json_decode( file_get_contents('php://input') );
-switch($data->method) {
-    case 'uitnodigingscode':
-        if(!isset($data->code)) sendError('Niet alle velden zijn ingevuld!', 400);
-        break;
-    case 'inloggen':
-        if(!(isset($data->gebruikersnaam) && isset($data->wachtwoord))) sendError('Niet alle velden zijn ingevuld!', 400);
-        break;
-    case 'registreren':
-        if(!(isset($data->gebruikersnaam) && isset($data->wachtwoord) && isset($data->wachtwoord2) && isset($data->email))) sendError('Niet alle velden zijn ingevuld!', 400);
-        break;
-    case 'uitloggen':
-    break;
-    default:
-        sendError('Onbekende methode', 400);
-        break;
-};
-
+require_once 'helper/errorHandler.php';
+require_once 'helper/successHandler.php';
 require_once 'objects/user.php';
 require_once 'objects/wedding.php';
 session_start();
 
-if($data->method == 'inloggen') {
-    $user = new User();
-    $user->gebruikersnaam = $data->gebruikersnaam;
-    $user->password = $data->wachtwoord;
-    if ($user->validateUser()) {
-        $_SESSION['userID'] = $user->id;
-        sendSuccessHttp();
-    } else {
-        sendError();
+// controleer of het POST is
+if($_SERVER['REQUEST_METHOD'] !== "POST") {
+    $error = new errorHandler('Alleen POST toegastaan', 400);
+    $error->sendJSON();
+};
+
+// zet request in $data
+$data = json_decode( file_get_contents('php://input') );
+if(empty($data->method)) $data->method = null;
+
+// Controleer of velden zijn meegegeven behorende bij de methode, en roep juiste handler op
+switch($data->method) {
+    case 'invitecode':
+        checkFields($data, ['invitecode']);
+        handleInvitecode($data->invitecode);
+    case 'login':
+        checkFields($data, ['username', 'password']);
+        handleLogin($data->username, $data->password);
+    case 'register':
+        checkFields($data, ['username', 'password', 'password2', 'email']);
+        handleRegister($data->username, $data->password, $data->email);
+    case 'logout':
+        handleLogout();
+    default:
+        $error = new errorHandler('Onbekende methode', 400);
+        $error->sendJSON();
+};
+
+function checkFields($data, $fields) {
+    foreach($fields as $field) {
+        if(empty($data->$field)) {
+            $error = new errorHandler('Niet alle velden zijn ingevuld', 400);
+            $error->sendJSON();
+        }
     }
 }
 
-if($data->method == 'registreren') {
-    $user = new User();
-    $user->gebruikersnaam = $data->gebruikersnaam;
-    $user->password = $data->wachtwoord;
-    $user->emailadres = $data->email;
-    if($user->createUser()) {
-        $_SESSION['userID'] = $user->id;
-        sendSuccessHttp();
-    } else {
-        sendError();
-    }
+function handleLogin($username, $password)
+{
+    $loginResult = User::login($username, $password);
+    if($loginResult == false) {
+        $error = new errorHandler('Gebruikersnaam of wachtwoord verkeerd', 401);
+        $error->sendJSON();
+    };
+    $_SESSION['username'] = $username;
+    $response = new successHandler;
+    $response->sendJSON();
 }
 
-if($data->method == 'uitnodigingscode') {
-    $wedding = new Wedding();
-    $wedding->invitecode = $data->code;
-    if($wedding->validateWeddingCode() == false) sendError();
-    $_SESSION['weddingID'] = $wedding->id;
-    sendSuccessHttp();
+function handleRegister($username, $password, $email)
+{
+    $result = User::createUser($username, $password, $email);
+    if($result instanceof errorHandler) $result->sendJSON();
+    $_SESSION['weddingID'] = null;
+    $_SESSION['username'] = $username;
+    $response = new successHandler;
+    $response->sendJSON();
 }
 
-if($data->method == 'uitloggen') {
+function handleInvitecode($invitecode)
+{
+    $result = Wedding::validateWeddingCode($invitecode);
+    if($result instanceof errorHandler) $result->sendJSON();
+    $_SESSION['username'] = null;
+    $_SESSION['weddingID'] = $result;
+    $response = new successHandler;
+    $response->sendJSON();
+}
+
+
+function handleLogout() {
     $_SESSION = array();
     session_destroy();
-    sendSuccessHttp();
+    $response = new successHandler();
+    $response->sendJSON();
 }
 ?>

@@ -1,83 +1,90 @@
 <?php
     require_once './database.php';
     require_once './objects/wedding.php';
+    require_once './helper/errorHandler.php';
     class User {
-        public $gebruikersnaam;
+        private $username;
         public $password;
-        public $emailadres;
-        public $id;
+        public $email;
+        public $weddingId;
         public $wedding;
         private $conn;
 
-        function __construct()
+        function __construct($_username, $_email, $_weddingId)
         {
             $db =new Database();
             $this->conn = $db->conn;
+            $this->username = $_username;
+            $this->email = $_email;
+            $this->weddingId = $_weddingId;
         }
 
-        function validateUser()
+        function save()
         {
-            global $errorMessage, $errorCode;
-            $query = "SELECT * FROM users u WHERE username=? LIMIT 1";
+            $query = "UPDATE Users SET email=:email, weddingId=:weddingId WHERE username=:username";
             $stmt = $this->conn->prepare($query);
-            $stmt->execute([$this->gebruikersnaam]);
-            if($stmt->rowCount() !== 1) {
-                $errorMessage = 'Gebruiker niet gevonden';
-                $errorCode = 404;
-                return false;
-            }
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
-            if(!password_verify($this->password, $user['password'])) {
-                $errorMessage = 'Wachtwoord niet correct';
-                $errorCode = 401;
-                return false;
-            }
-            $this->id = $user['id'];
-            return true;
-            
+            $stmt->bindValue(':username', $this->username);
+            $stmt->bindValue(':email', $this->email);
+            $stmt->bindValue(':weddingId', $this->weddingId);
+            $result = $stmt->execute();
+            return $result;
         }
 
-        function getUser()
+        static function login($username, $password)
         {
-            $query = "SELECT * FROM users WHERE id=? LIMIT 1";
-            $stmt = $this->conn->prepare($query);
-            $stmt->execute([$this->id]);
-            if($stmt->rowCount() !== 1) return false;
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
-            $this->gebruikersnaam = $user['username'];
-            $this->emailadres = $user['email'];
-            $this->updateWedding();
-            return true;
-        }
-
-        function createUser()
-        {
-            global $errorMessage, $errorCode;
-            $this->password = password_hash($this->password, PASSWORD_DEFAULT);
-            $query = "INSERT INTO users(username, password, email) VALUES (:username, :password, :email)";
-            $stmt = $this->conn->prepare($query);
-            $stmt->bindParam(':username', $this->gebruikersnaam);
-            $stmt->bindParam(':password', $this->password);
-            $stmt->bindParam(':email', $this->emailadres);
-            if($stmt->execute() == false) {
-                $errorMessage = 'Gebruiker kan niet worden aangemaakt';
-                $errorCode = 503;
-                return false;
-            }
+            $db =new Database();
+            $conn = $db->conn;
             $query = "SELECT * FROM users WHERE username=? LIMIT 1";
-            $stmt = $this->conn->prepare($query);
-            $stmt->execute([$this->gebruikersnaam]);
-            if($stmt->rowCount() !== 1) {
-                $errorMessage = 'Gebruiker kan niet worden aangemaakt';
-                $errorCode = 503;
-                return false;
-            }
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
-            $this->id = $user['id'];
+            $stmt = $conn->prepare($query);
+            $stmt->execute([$username]);
+            if($stmt->rowCount() !== 1) return false;
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            if(!password_verify($password, $result['password'])) return false;
             return true;
         }
 
-        function updateWedding()
+        static function getUser($username)
+        {
+            $db =new Database();
+            $conn = $db->conn;
+            $query = "SELECT * FROM users WHERE username=? LIMIT 1";
+            $stmt = $conn->prepare($query);
+            $stmt->execute([$username]);
+            if($stmt->rowCount() !== 1) return false;
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $user = new Self($result['username'], $result['email'], $result['weddingId']);
+            if(isset($result['weddingId'])) {
+                $user->wedding = Wedding::getWedding($result['weddingId']);
+            }
+            return $user;
+        }
+
+        static function createUser($username, $password, $email)
+        {
+            $db =new Database();
+            $conn = $db->conn;
+            $password = password_hash($password, PASSWORD_DEFAULT);
+            $query = "INSERT INTO users(username, password, email) VALUES (:username, :password, :email)";
+            $stmt = $conn->prepare($query);
+            $stmt->bindParam(':username', $username);
+            $stmt->bindParam(':password', $password);
+            $stmt->bindParam(':email', $email);
+            $result = $stmt->execute();
+            if($result == false) {
+                $errorCode = $stmt->errorInfo()[1];
+                switch ($errorCode) {
+                    case 1062:
+                        $error = new errorHandler('Gebruikersnaam bestaat al', 409);
+                        break;
+                    default:
+                        $error = new errorHandler('Gebruiker kan niet worden aangemaakt, probeer het later nogmaals', 503);
+                }
+                return $error;
+            }
+            return true;
+        }
+
+        function getWedding()
         {
             $wedding = new Wedding();
             $wedding->userid = $this->id;

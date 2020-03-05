@@ -1,6 +1,6 @@
 $(document).ready(() => {
     $('#loginLink').on('click', () => {
-    $('#form').data('method', 'inloggen');
+    $('#form').data('method', 'login');
     $('#inputCode').addClass('hidden');
     $('#inputGebruikersnaam').removeClass('hidden');
     $('#inputWachtwoord').removeClass('hidden');
@@ -10,7 +10,7 @@ $(document).ready(() => {
     });
 
     $('#regLink').on('click', () => {
-        $('#form').data('method', 'registreren');
+        $('#form').data('method', 'register');
         $('#inputCode').addClass('hidden');
         $('#inputGebruikersnaam').removeClass('hidden');
         $('#inputWachtwoord').removeClass('hidden');
@@ -20,7 +20,7 @@ $(document).ready(() => {
     });
 
     $('#uitnodigingLink').on('click', () => {
-        $('#form').data('method', 'uitnodigingscode');
+        $('#form').data('method', 'invitecode');
         $('#inputCode').removeClass('hidden');
         $('#inputGebruikersnaam').addClass('hidden');
         $('#inputWachtwoord').addClass('hidden');
@@ -35,8 +35,8 @@ $(document).ready(() => {
         data = new Object();
         data['method'] = method;
         switch(method) {
-            case 'uitnodigingscode':
-                data['code'] = $('#uitnodigingscode').val();
+            case 'invitecode':
+                data['invitecode'] = $('#uitnodigingscode').val();
                 break;
             case 'registreren':
                 data['gebruikersnaam'] = $('#gebruikersnaam').val();
@@ -44,9 +44,9 @@ $(document).ready(() => {
                 data['wachtwoord2'] = $('#wachtwoord2').val();
                 data['email'] = $('#email').val();
                 break;
-            case 'inloggen':
-                data['gebruikersnaam'] = $('#gebruikersnaam').val();
-                data['wachtwoord'] = $('#wachtwoord').val();
+            case 'login':
+                data['username'] = $('#gebruikersnaam').val();
+                data['password'] = $('#wachtwoord').val();
                 break;
         }
         $.ajax({
@@ -55,7 +55,7 @@ $(document).ready(() => {
             data: JSON.stringify(data)
         }).done(res => {
             if(res.status === "successful") {
-                location.reload();
+                location.replace('/bruiden');
             } else {
                 console.log(res)
             }

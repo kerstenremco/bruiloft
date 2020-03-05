@@ -57,10 +57,10 @@
             </tr>
           </thead>
           <tbody>
-            {% for kado in kados %}
+            {% for gift in gifts %}
             <tr data-index="{{ kado.id }}" data-positie="{{ kado.order }}">
-              <td>{{kado.naam}}</td>
-              <td>{{kado.beschrijving}}</td>
+              <td>{{gift.name}}</td>
+              <td>{{gift.summary}}</td>
               <td><button class="verwijderKado" data-index="{{ kado.id }}">Verwijder</button></td>
             </tr>
             {% endfor %}

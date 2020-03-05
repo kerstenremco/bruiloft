@@ -2,8 +2,8 @@ $(document).ready(() => {
     $("#wishlistTable tbody").sortable({
         update: function(event, ui) {
             $(this).children().each(function(index) {
-                if($(this).attr('data-positie') != index+1) {
-                    $(this).attr('data-positie', index+1);
+                if($(this).attr('data-sequence') != index+1) {
+                    $(this).attr('data-sequence', index+1);
                     $(this).attr('data-updated', true);
                 } else {
                     $(this).attr('data-updated', false);
@@ -14,23 +14,25 @@ $(document).ready(() => {
     });
 
     function saveNewOrder() {
-        var order = [];
+        var sequence = [];
         $('#wishlistTable tr').filter('[data-updated=true]').each(function() {
-            order.push([$(this).attr('data-index'), $(this).attr('data-positie')])
+            sequence.push([$(this).attr('data-index'), $(this).attr('data-sequence')])
         })
         var data = new Object;
-        data['method'] = 'updateOrder';
-        data['order'] = order;
+        data['method'] = 'updateSequence';
+        data['sequence'] = sequence;
         $.ajax({
             url: 'wedding.php',
             method: "POST",
             data: JSON.stringify(data)
         }).done(res => {
-            if(res.status === "successful") {
-                console.log('success');
-            } else {
-                console.log(res)
-            }
-        })
+            if(res.status !== "successful") disableSortable();
+        }).fail(res => disableSortable());
+    }
+
+    function disableSortable()
+    {
+        $("#wishlistTable tbody").sortable("disable");
+        alert('De volgorde kan niet worden verwerkt, refresh de pagina!');
     }
 });

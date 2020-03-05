@@ -1,4 +1,5 @@
 <?php
+include_once './helper/errorHandler.php';
     class Database {
         private $host = 'localhost';
         private $db = 'bruiden';
@@ -7,7 +8,7 @@
         private $charset = 'utf8mb4';
         private $dsn;
         private $options = [
-            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+            //PDO::ATTR_ERRMODE            => PDO::ERRMODE_WARNING,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES   => false,
         ];
@@ -19,7 +20,8 @@
             try {
                 $this->conn = new PDO($this->dsn, $this->user, $this->pass, $this->options);
             } catch (\PDOException $e) {
-                echo "DB connection error";
+                $error = new errorHandler('Fout met DB verbinding', 503);
+                $error->sendJSON();
            }
         }
     }

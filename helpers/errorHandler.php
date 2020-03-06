@@ -1,4 +1,5 @@
 <?php
+namespace helpers;
 class errorHandler {
     public $errorMessage;
     public $errorCode;

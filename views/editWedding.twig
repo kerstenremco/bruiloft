@@ -1,21 +1,88 @@
-
-
-
-<table class="table table-stripped table-hover table-border" id="wishlistTable">
-  <thead>
-    <tr>
-      <td>Naam</td>
-      <td>Beschrijving</td>
-    </tr>
-  </thead>
-  <tbody>
-    {% for gift in gifts %}
-    <tr data-index="{{ gift.name }}" data-sequence="{{ gift.sequence }}">
-      <td>{{gift.name}}</td>
-      <td>{{gift.summary}}</td>
-      <td><button class="removeGift" data-index="{{ gift.name }}">Verwijder</button></td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+<section class="resume-section p-3 p-lg-5 d-flex justify-content-center" id="experience">
+  <table class="table table-stripped table-hover table-border" id="wishlistTable" data-role="table" data-mode="reflow">
+    <thead>
+      <tr>
+        <td></td>
+        <td>Naam</td>
+        <td>Beschrijving</td>
+        <td>Actie</td>
+      </tr>
+    </thead>
+    <tbody id="giftTableBody">
+      <!--- BIJ UPDATEN ROW ALTIJD VOORBEELDROW OOK BIJWERKEN!!!!! -->
+      <tr data-name="" class="hidden" id="exampleRow">
+        <td>
+          <img src="public/img/gifts/default.png" alt="" class="img-fluid" height="60" width="60" />
+        </td>
+        <td class="name"></td>
+        <td class="summary"></td>
+        <td>
+          <button type="button" class="btn btn-primary btn-wedding btn-editgift">
+            Bewerk
+          </button>
+          <button type="button" class="btn btn-primary btn-wedding btn-deletegift">
+            Verwijder
+          </button>
+        </td>
+      </tr>
+      <!--- BIJ UPDATEN ROW ALTIJD VOORBEELDROW OOK BIJWERKEN!!!!! -->
+      {% for gift in gifts %}
+      <tr data-name="{{ gift.name }}" data-sequence="{{ gift.sequence }}">
+        <td>
+          <img src="{{ gift.imageSrc }}" alt="{{ gift.name }}" class="img-fluid"  height="60" width="60" />
+        </td>
+        <td class="name">{{ gift.name }}</td>
+        <td class="summary">{{ gift.summary }}</td>
+        <td>
+          <button type="button" class="btn btn-primary btn-wedding btn-editgift">
+            Bewerk
+          </button>
+          <button type="button" class="btn btn-primary btn-wedding btn-deletegift">
+            Verwijder
+          </button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </section>
+
+<a href="#" class="float" id="addGift">
+  <i class="fa fa-plus my-float"></i>
+</a>
+
+<div class="modal" tabindex="-1" role="dialog" id="giftModal">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="giftModalTitle"></h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-danger hidden" id="messageModel"></div>
+        <form id="giftForm" enctype="multipart/form-data">
+          <input type="hidden" name="method" value="" />
+          <input type="hidden" name="oldname" value="" />
+          <div class="form-group">
+            <label for="giftName">Naam</label>
+            <input type="text" class="form-control" name="name" id="giftName" placeholder="Naam cadeau" />
+          </div>
+          <div class="form-group">
+            <label for="giftSummary">Beschrijvng</label>
+            <input type="text" class="form-control" name="summary" id="giftSummary" placeholder="Beschrijving cadeau" />
+          </div>
+          <div class="form-group">
+            <label for="giftImage">Afbeelding van cadeau (niet verplicht)</label>
+            <input id="uploadImage" type="file" id="giftImage" accept="image/*" name="image" />
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-wedding">
+            Opslaan
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

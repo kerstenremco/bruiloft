@@ -1,17 +1,15 @@
-
-
   <section class="resume-section p-3 p-lg-5 d-flex justify-content-center" id="experience">
     <div class="sign-up-content">
-        <form method="POST" id="weddingForm" class="signup-form">
+        <form id="inviteform" class="signup-form">
             <h2 class="form-title">Wie wil je uitnodigen?</h2>
-
+            <input type="hidden" name="method" value="invite" />
             <div class="form-textbox">
                 <label for="email">E-mailadres</label>
-                <input type="email" name="email" id="email" />
+                <input type="email" name="email" />
             </div>
 
             <div class="form-textbox">
-                <input type="submit" name="submit" id="regWeddingButton" class="submit" value="Nodig uit" />
+                <input type="submit" name="submit" class="submit" value="Nodig uit" />
             </div>
         </form>
     </div>

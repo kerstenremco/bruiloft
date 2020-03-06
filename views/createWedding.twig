@@ -1,24 +1,23 @@
-
-
   <section class="resume-section p-3 p-lg-5 d-flex justify-content-center" id="experience">
     <div class="sign-up-content">
-        <form method="POST" id="weddingForm" class="signup-form" data-mode="create">
-            <h2 class="form-title">Vertel ons over je bruiloft!</h2>
-            <button id="weddingFormSwitch" class="submit">Ik heb een koppelcode</button>
+        <h2 class="form-title">Vertel ons over je bruiloft!</h2>
+        <button id="weddingFormSwitch" class="submit">Ik heb een koppelcode</button>
+        <form method="POST" id="weddingForm" class="signup-form">
+            <input type="hidden" name="method" value="create" />
             <div id="weddingFormCreate">
                 <div class="form-textbox">
                 <label for="name">Jouw naam</label>
-                <input type="text" name="person1" id="person1" />
+                <input type="text" name="person1" />
             </div>
 
             <div class="form-textbox">
                 <label for="email">Naam partner</label>
-                <input type="text" name="person2" id="person2" />
+                <input type="text" name="person2" />
             </div>
 
             <div class="form-textbox">
                 <label for="pass">Datum</label>
-                <input type="text" name="date" id="date" placeholder="dd-mm-jjjj"/>
+                <input type="text" name="date" placeholder="dd-mm-jjjj"/>
             </div>
 
             <div class="form-textbox">
@@ -28,7 +27,7 @@
             <div id="weddingFormLink" class="hidden">
                 <div class="form-textbox">
                 <label for="name">Koppelcode</label>
-                <input type="text" name="person1" id="person1" />
+                <input type="text" name="linkingcode" />
             </div>
 
             <div class="form-textbox">

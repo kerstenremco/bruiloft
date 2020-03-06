@@ -1,7 +1,5 @@
 <?php
-require_once 'vendor/autoload.php';
-require_once 'database.php';
-require_once 'objects/user.php';
+require_once 'autoload.php';
 session_start();
 $db = new Database();
 $conn = $db->conn;
@@ -18,7 +16,7 @@ if (isset($_SESSION['weddingID'])) handleVisitWedding();
 function handleUser()
 {
   $renderOptions = array();
-  $user = User::getUser($_SESSION['username']);
+  $user = objects\User::getUser($_SESSION['username']);
   if($user == false) showLogin(['errormessage' => 'Sessie is verlopen, log opnieuw in.']);
   $renderOptions['name'] = $_SESSION['username'];
 
@@ -29,6 +27,12 @@ function handleUser()
   }
 
   // bruiloft bekend
+  foreach($user->wedding->gifts as $gift) {
+    if($gift->claimed) $gift->disabled = 'disabled';
+    else $gift->disabled = null;
+    if($gift->image) $gift->imageSrc = 'public/img/gifts/' . $gift->image;
+    else $gift->imageSrc = 'public/img/gifts/default.png';
+  }
   $renderOptions['hasWedding'] = true;
   $renderOptions['person1'] = $user->wedding->person1;
   $renderOptions['person2'] = $user->wedding->person2;
@@ -55,8 +59,8 @@ function handleUser()
 
 function checkWeddingCode()
 {
-  $result = Wedding::validateWeddingCode($_GET['code']);
-  if($result instanceof errorHandler) {
+  $result = objects\Wedding::validateWeddingCode($_GET['code']);
+  if($result instanceof helpers\errorHandler) {
     showLogin(['errormessage' => $result->errorMessage]);
   }
   $_SESSION['weddingID'] = $result;
@@ -65,13 +69,19 @@ function checkWeddingCode()
 function handleVisitWedding()
 {
   $renderOptions = array();
-  $wedding = Wedding::getWedding($_SESSION['weddingID']);
+  $wedding = objects\Wedding::getWedding($_SESSION['weddingID']);
   if($wedding == null) showLogin(['errormessage' => 'Bruiloft bestaat niet meer']);
   $renderOptions['person1'] = $wedding->person1;
   $renderOptions['person2'] = $wedding->person2;
   $renderOptions['date'] = $wedding->weddingdate;
   $renderOptions['gifts'] = $wedding->gifts;
   $renderOptions['action'] = 'home';
+  foreach($wedding->gifts as $gift) {
+    if($gift->claimed) $gift->disabled = 'disabled';
+    else $gift->disabled = null;
+    if($gift->image) $gift->imageSrc = 'public/img/gifts/' . $gift->image;
+    else $gift->imageSrc = 'public/img/gifts/default.png';
+  }
   render('guest.twig', $renderOptions);
 }
 

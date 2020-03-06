@@ -1,6 +1,5 @@
 <?php
-    require_once './database.php';
-    require_once 'gift.php';
+namespace objects;
     class Wedding {
         public $id;
         public $person1;
@@ -11,20 +10,22 @@
         public $gifts = array();
         private $conn;
 
-        function __construct($_id, $_person1, $_person2, $_weddingdate, $_invitecode, $_linkingcode)
+        function __construct($id, $person1, $person2, $weddingdate, $invitecode, $linkingcode)
         {
-            $db =new Database();
+            $db =new \Database();
             $this->conn = $db->conn;
-            $this->id = $_id;
-            $this->person1 = $_person1;
-            $this->person2 = $_person2;
-            $this->weddingdate = $_weddingdate;
-            $this->invitecode = $_invitecode;
-            $this->linkingcode = $_linkingcode;
+            $this->id = $id;
+            $this->person1 = $person1;
+            $this->person2 = $person2;
+            $this->weddingdate = $weddingdate;
+            $this->invitecode = $invitecode;
+            $this->linkingcode = $linkingcode;
         }
 
         function save()
         {
+            $this->weddingdate = str_replace('/', '-', $this->weddingdate);
+            $this->weddingdate = date("Y-m-d", strtotime($this->weddingdate));
             $query = "UPDATE Weddings SET name_person1=:nameperson1, name_person2=:nameperson2, linkingcode=:linkingcode, weddingdate=:weddingdate WHERE weddingId=:weddingid";
             $stmt = $this->conn->prepare($query);
             $stmt->bindValue(':nameperson1', $this->person1);
@@ -38,7 +39,9 @@
 
         static function create($person1, $person2, $weddingdate)
         {
-            $db =new Database();
+            $weddingdate = str_replace('/', '-', $weddingdate);
+            $weddingdate = date("Y-m-d", strtotime($weddingdate));
+            $db =new \Database();
             $conn = $db->conn;
             $invitecode = Self::generateCode();
             $linkingcode = Self::generateCode();
@@ -50,7 +53,7 @@
             $stmt->bindValue(':invitecode', $invitecode);
             $stmt->bindValue(':linkingcode', $linkingcode);
             if($stmt->execute() == false) {
-                $error = new errorHandler('Bruiloft kan niet worden aangemaakt', 503);
+                $error = new \helpers\errorHandler('Bruiloft kan niet worden aangemaakt', 503);
                 return $error;
             }
             return $conn->lastInsertId();
@@ -58,18 +61,18 @@
 
         static function getWedding($id)
         {
-            $db =new Database();
+            $db =new \Database();
             $conn = $db->conn;
-            $query = "SELECT * FROM Weddings WHERE weddingId=? LIMIT 1";
+            $query = "SELECT *, DATE_FORMAT(weddingdate, '%d/%m/%Y') AS formateddate FROM Weddings WHERE weddingId=? LIMIT 1";
             $stmt = $conn->prepare($query);
             $stmt->execute([$id]);
             if($stmt->rowCount() !== 1) return null;
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $result = $stmt->fetch(\PDO::FETCH_ASSOC);
             $wedding = new Self(
                 $result['weddingId'],
                 $result['name_person1'],
                 $result['name_person2'],
-                $result['weddingdate'],
+                $result['formateddate'],
                 $result['invitecode'],
                 $result['linkingcode']);
             $wedding->getGifts();
@@ -89,22 +92,22 @@
 
         static function validateWeddingCode($weddingcode)
         {
-            $db =new Database();
+            $db =new \Database();
             $conn = $db->conn;
             $query = "SELECT * from weddings WHERE invitecode=? LIMIT 1";
             $stmt = $conn->prepare($query);
             $result = $stmt->execute([$weddingcode]);
             if($stmt->rowCount() != 1) {
-                $error = new errorHandler('Deze code is niet geldig! Neem contact op met het bruidspaar.', 404);
+                $error = new \helpers\errorHandler('Deze code is niet geldig! Neem contact op met het bruidspaar.', 404);
                 return $error;
             }
-            $wedding = $stmt->fetch(PDO::FETCH_ASSOC);
+            $wedding = $stmt->fetch(\PDO::FETCH_ASSOC);
             return $wedding['weddingId'];
         }
 
         static function validateLinkingCode($linkingcode)
         {
-            $db =new Database();
+            $db =new \Database();
             $conn = $db->conn;
 
             // Zoek wedding
@@ -114,11 +117,11 @@
 
             // als geen wedding gevonden, stuur foutmelding
             if($stmt->rowCount() != 1) {
-                $error = new errorHandler('Deze code is niet geldig!', 404);
+                $error = new \helpers\errorHandler('Deze code is niet geldig!', 404);
                 return $error;
             }
 
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $result = $stmt->fetch(\PDO::FETCH_ASSOC);
             $wedding = new Self(
                 $result['weddingId'],
                 $result['name_person1'],
@@ -134,13 +137,14 @@
             $query = "SELECT * FROM Gifts WHERE weddingId=? ORDER BY sequence";
             $stmt = $this->conn->prepare($query);
             $stmt->execute([$this->id]);
-            while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            while($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
                 $gift = new Gift(
                     $row['weddingId'],
                     $row['name'],
                     $row['summary'],
                     $row['image'],
-                    $row['sequence']
+                    $row['sequence'],
+                    $row['claimed']
                 );
                 array_push($this->gifts, $gift);
             }

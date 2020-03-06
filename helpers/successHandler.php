@@ -1,4 +1,5 @@
 <?php
+namespace helpers;
 class successHandler {
     private $successMessage = null;
     private $successCode = 200;

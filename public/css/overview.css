@@ -153,6 +153,88 @@
     color: #824027;
   }
 
+  .btn-wedding {
+    background-color: #f30186;
+    border-color: #f30186;
+
+  }
+
+  .btn-wedding:hover {
+    background-color: #ce1f7f;
+    border-color: #ce1f7f;
+  }
+
+  .btn-wedding:disabled {
+    background-color: #ce1f7f;
+    border-color: #ce1f7f;
+  }
+
   .hidden {
     display: none;
+}
+
+.float {
+	position:fixed;
+	width:60px;
+	height:60px;
+	bottom:40px;
+	right:40px;
+	background-color:#f30186;
+	color:#FFF;
+	border-radius:50px;
+	text-align:center;
+	box-shadow: 2px 2px 3px #999;
+}
+.float:hover{
+  color: #ffffff;
+  background-color: #0c9;
+}
+.float:visited {
+  color: #ffffff;
+}
+
+.my-float{
+	margin-top:22px;
+}
+.my-float:hover{
+	color: #ffffff;
+}
+
+#wishlistTable { 
+  width: 100%; 
+  border-collapse: collapse; 
+}
+
+@media 
+only screen and (max-width: 760px),
+(min-device-width: 768px) and (max-device-width: 1024px)  {
+
+	/* Force table to not be like tables anymore */
+	#wishlistTable table, thead, tbody, th, td, tr { 
+		display: block; 
+	}
+	
+	/* Hide table headers (but not display: none;, for accessibility) */
+	#wishlistTable thead tr { 
+		position: absolute;
+		top: -9999px;
+		left: -9999px;
+	}
+	
+	#wishlistTable tr { 
+    border-bottom: 1px solid #f30186;
+    padding-bottom: 20px;
+    padding-top: 20px;
+  }
+	
+	#wishlistTable td { 
+		/* Behave  like a "row" */
+    border: none;
+    border-top: none;
+    border-bottom: none; 
+    border-top: none; 
+		position: relative;
+  }
+	
+
 }

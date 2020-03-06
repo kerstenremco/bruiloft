@@ -1,64 +1,58 @@
-$(document).ready(() => {
-    $('#loginLink').on('click', () => {
-    $('#form').data('method', 'login');
-    $('#inputCode').addClass('hidden');
-    $('#inputGebruikersnaam').removeClass('hidden');
-    $('#inputWachtwoord').removeClass('hidden');
-    $('#inputWachtwoord2').addClass('hidden');
-    $('#inputEmail').addClass('hidden');
-    $('#subheader').html('Inloggen');
-    });
+$("#switchLogin").on("click", () => changeLoginForm("login"));
+$("#switchRegister").on("click", () => changeLoginForm("register"));
+$("#switchInvite").on("click", () => changeLoginForm("invitecode"));
 
-    $('#regLink').on('click', () => {
-        $('#form').data('method', 'register');
-        $('#inputCode').addClass('hidden');
-        $('#inputGebruikersnaam').removeClass('hidden');
-        $('#inputWachtwoord').removeClass('hidden');
-        $('#inputWachtwoord2').removeClass('hidden');
-        $('#inputEmail').removeClass('hidden');
-        $('#subheader').html('Registreren');
-    });
+function changeLoginForm(to) {
+  $("#method").val(to);
+  $(".input-group").each((index, element) => {
+    $(element).addClass("hidden");
+  });
+  switch (to) {
+    case "invitecode":
+      fields = ["invitecode"];
+      subheader = "Inloggen met uitnodigingscode";
+      break;
+    case "register":
+      fields = [
+        "username",
+        "password",
+        "password2",
+        "email"
+      ];
+      subheader = "Registreren";
+      break;
+    case "login":
+      fields = ["username", "password"];
+      subheader = "Inloggen voor bruiden";
+      break;
+  }
+  $(fields).each((index, element) => {
+    console.log(element);
+    $(`#input-${element}`).removeClass("hidden");
+  });
+  $("#subheader").html(subheader);
+}
 
-    $('#uitnodigingLink').on('click', () => {
-        $('#form').data('method', 'invitecode');
-        $('#inputCode').removeClass('hidden');
-        $('#inputGebruikersnaam').addClass('hidden');
-        $('#inputWachtwoord').addClass('hidden');
-        $('#inputWachtwoord2').addClass('hidden');
-        $('#inputEmail').addClass('hidden');
-        $('#subheader').html('Inloggen met uitnodigingscode');
-    });
+$('#loginform').submit(e => {
+  e.preventDefault();
 
-    $('#form').submit((e) => {
-        e.preventDefault();
-        method = $('#form').data('method');
-        data = new Object();
-        data['method'] = method;
-        switch(method) {
-            case 'invitecode':
-                data['invitecode'] = $('#uitnodigingscode').val();
-                break;
-            case 'registreren':
-                data['gebruikersnaam'] = $('#gebruikersnaam').val();
-                data['wachtwoord'] = $('#wachtwoord').val();
-                data['wachtwoord2'] = $('#wachtwoord2').val();
-                data['email'] = $('#email').val();
-                break;
-            case 'login':
-                data['username'] = $('#gebruikersnaam').val();
-                data['password'] = $('#wachtwoord').val();
-                break;
-        }
-        $.ajax({
-            url: 'login.php',
-            method: "POST",
-            data: JSON.stringify(data)
-        }).done(res => {
-            if(res.status === "successful") {
-                location.replace('/bruiden');
-            } else {
-                console.log(res)
-            }
-        }).fail(res => console.log(res))
+  $.ajax({
+    url: "login.php",
+    type: "POST",
+    data: new FormData(e.target),
+    contentType: false,
+    cache: false,
+    processData:false,
+  })
+    .done(res => {
+      if (res.status === "successful") location.replace("/bruiden");
+      else showError(res.responseJSON.message);
     })
-})
+    .fail(res => showError(res.responseJSON.message));
+});
+
+function showError(error)
+{
+    $('#errorMessage').removeClass('hidden');
+    $('#errorMessage').text(error);
+}

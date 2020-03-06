@@ -1,11 +1,5 @@
 <?php
-include_once './helper/errorHandler.php';
     class Database {
-        private $host = 'localhost';
-        private $db = 'bruiden';
-        private $user = 'root';
-        private $pass = 'rootroot';
-        private $charset = 'utf8mb4';
         private $dsn;
         private $options = [
             //PDO::ATTR_ERRMODE            => PDO::ERRMODE_WARNING,
@@ -16,11 +10,11 @@ include_once './helper/errorHandler.php';
         
         function __construct()
         {
-            $this->dsn = "mysql:host=$this->host;dbname=$this->db;charset=$this->charset";
+            $this->dsn = 'mysql:host='. DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4';
             try {
-                $this->conn = new PDO($this->dsn, $this->user, $this->pass, $this->options);
+                $this->conn = new PDO($this->dsn, DB_USER, DB_PASSWORD, $this->options);
             } catch (\PDOException $e) {
-                $error = new errorHandler('Fout met DB verbinding', 503);
+                $error = new helpers\errorHandler('Fout met DB verbinding', 503);
                 $error->sendJSON();
            }
         }

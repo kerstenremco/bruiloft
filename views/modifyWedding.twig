@@ -3,22 +3,19 @@
     <div class="sign-up-content">
         <form method="POST" id="weddingForm" class="signup-form">
             <h2 class="form-title">Wat wil je wijzigen?</h2>
-
+            <input type="hidden" name="method" value="update" />
             <div class="form-textbox">
                 <label for="name">Jouw naam</label>
-                <input type="text" name="person1" id="person1" value="{{ person1 }}" />
+                <input type="text" name="person1" value="{{ person1 }}" />
             </div>
-
             <div class="form-textbox">
                 <label for="email">Naam partner</label>
-                <input type="text" name="person2" id="person2" value="{{ person2 }}" />
+                <input type="text" name="person2" value="{{ person2 }}" />
             </div>
-
             <div class="form-textbox">
                 <label for="pass">Datum</label>
-                <input type="text" name="date" id="date" value="{{ date }}"/>
+                <input type="text" name="date" value="{{ date }}"/>
             </div>
-
             <div class="form-textbox">
                 <input type="submit" name="submit" id="editWeddingButton" class="submit" value="Opslaan" />
             </div>

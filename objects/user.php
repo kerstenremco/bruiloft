@@ -101,6 +101,8 @@
          */
         static function createUser($username, $password, $password2, $email)
         {
+            if(strlen($password) < 8) throw new \Exception('Wachtwoord moet minimaal 8 karakters lang zijn', 400);
+
             if ($password != $password2) throw new \Exception('Wachtwoorden zijn niet gelijk', 400);
             $password = password_hash($password, PASSWORD_DEFAULT);
 

@@ -84,14 +84,14 @@ function checkFields($fields)
                 break;
             case 'name':
                 $_POST[$field] = preg_replace('/[^A-Za-z0-9" "\-]/', '', $_POST[$field]);
-                trim($_POST[$field]);
+                $_POST[$field] = trim($_POST[$field]);
                 break;
             case 'oldname':
                 if (preg_match('/[^A-Za-z0-9" "\-]/', $_POST[$field])) throw new Exception('Fout in request', 400);
                 break;
             case 'summary':
                 $_POST[$field] = preg_replace('/[^A-Za-z0-9" ",.:()\-]/', '', $_POST[$field]);
-                trim($_POST[$field]);
+                $_POST[$field] = trim($_POST[$field]);
                 break;
             default:
                 throw new Exception('Fout bij controleren van ' . $field, 400);

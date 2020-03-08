@@ -19,17 +19,11 @@ class imageHandler {
         $ext = strtolower(pathinfo($this->image['name'], PATHINFO_EXTENSION));
         $final_name = rand(1000,1000000) . $this->image['name'] ;
 
-        if(in_array($ext, $this->valid_extensions) == false) {
-            $error = new errorHandler('Type niet toegestaan', 403);
-            return $error;
-        }
+        if(in_array($ext, $this->valid_extensions) == false) throw new \Exception('Type niet toegestaan', 403);
 
         $path = dirname(__DIR__, 1).$this->path.strtolower($final_name);
 
-        if(move_uploaded_file($this->image['tmp_name'],$path) == false) {
-            $error = new errorHandler('Fout bij opslaan afbeelding', 403);
-            return $error;
-        }
+        if(move_uploaded_file($this->image['tmp_name'],$path) == false) throw new \Exception('Fout bij opslaan afbeelding', 500);
         
         return $final_name;
     }
@@ -41,8 +35,7 @@ class imageHandler {
                 $path = '/public/img/gifts/';
                 break;
         }
-        $res = unlink(dirname(__DIR__, 1).$path.$imgname);
-        $stp;
+        unlink(dirname(__DIR__, 1).$path.$imgname);
     }
 }
 ?>

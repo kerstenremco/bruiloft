@@ -184,6 +184,7 @@ function createRow(gift) {
   clone.attr("data-sequence", gift.sequence);
   clone.find(".name").text(gift.name);
   clone.find(".summary").text(gift.summary);
+  if(gift.image != null) clone.find("img").attr('src', `public/img/gifts/${gift.image}`);
   clone.removeClass("hidden");
   clone.attr("id", "");
 }

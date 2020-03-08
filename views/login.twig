@@ -11,7 +11,7 @@
 	<div class="d-flex justify-content-center h-100">
 		<div class="card">
 			<div class="card-header">
-				<div class="alert alert-danger hidden" id="errorMessage">
+				<div class="alert alert-danger {% if errormessage is empty %} hidden {% endif %}" id="errorMessage">
 					{{ errormessage }}
 				  </div>
 				<h3 id="subheader">Inloggen met uitnodigingscode</h3>

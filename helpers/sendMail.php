@@ -1,5 +1,8 @@
 <?php
 namespace helpers;
+
+use Exception;
+
 class sendMail {
     private $transport;
     private $mailer;
@@ -25,8 +28,7 @@ class sendMail {
             $result = $this->mailer->send($this->message);
             return true;
         } catch (\Exception $e) {
-        $error = new errorHandler('Maildienst buiten gebruik', 503);
-        return $error;
+        throw new Exception('Fout bij versturen van email, probeer het later nogmaals', 500);
         }
     }
 }

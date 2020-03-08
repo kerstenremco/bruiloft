@@ -1,18 +1,17 @@
 <?php
 namespace helpers;
 class successHandler {
-    private $successMessage = null;
-    private $successCode = 200;
-    function __construct() {
-        if(func_num_args() == 2) {
-            $this->successMessage = func_get_arg(0);
-            $this->successCode = func_get_arg(1);
-        }
-    }
-    function sendJSON() {
-        $response = $this->successMessage != null ? array('status' => 'successful', 'message' =>  $this->successMessage) : array('status' => 'successful');
+    static function sendJSON() {
+        $successCode = 200;
+
+        if(func_num_args() > 0) $successMessage = func_get_arg(0);
+        if(func_num_args() == 2) $successCode = func_get_arg(1);
+
+        $response = isset($successMessage) ? array('status' => 'successful', 'message' =>  $successMessage) : array('status' => 'successful');
+        http_response_code($successCode);
         echo json_encode($response);
         die();
     }
+
 }
 ?>

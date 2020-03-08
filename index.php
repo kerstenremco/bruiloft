@@ -16,9 +16,11 @@ if (isset($_SESSION['weddingID'])) handleVisitWedding();
 function handleUser()
 {
   $renderOptions = array();
-  $user = objects\User::getUser($_SESSION['username']);
-  if($user == false) showLogin(['errormessage' => 'Sessie is verlopen, log opnieuw in.']);
-  $renderOptions['name'] = $_SESSION['username'];
+
+  try { $user = objects\User::getUser($_SESSION['username']); }
+  catch(Exception $e) { showLogin([]); }
+
+  $renderOptions['name'] = $user->get('username');
 
   // gebruiker actief, maar geen bruiloft bekend
   if ($user->wedding == null) {
@@ -26,12 +28,10 @@ function handleUser()
     render('base.twig', $renderOptions);
   }
 
-  // bruiloft bekend
+  // bruiloft bekend, stel afbeeldingpaden in
   foreach($user->wedding->gifts as $gift) {
-    if($gift->claimed) $gift->disabled = 'disabled';
-    else $gift->disabled = null;
-    if($gift->image) $gift->imageSrc = 'public/img/gifts/' . $gift->image;
-    else $gift->imageSrc = 'public/img/gifts/default.png';
+    if($gift->image) $gift->imageSrc = GIFTS_IMG_PATH.$gift->image;
+    else $gift->imageSrc = GIFTS_IMG_PATH.'default.png';
   }
   $renderOptions['hasWedding'] = true;
   $renderOptions['person1'] = $user->wedding->person1;
@@ -40,6 +40,7 @@ function handleUser()
   $renderOptions['invitecode'] = $user->wedding->invitecode;
   $renderOptions['gifts'] = $user->wedding->gifts;
   $renderOptions['linkingcode'] = $user->wedding->linkingcode;
+
   // gebruiker en bruiloft bekend, request naar bewerk bruiloft
   if (isset($_GET['action']) && $_GET['action'] == 'bewerken') {
     $renderOptions['action'] = 'edit';
@@ -59,28 +60,30 @@ function handleUser()
 
 function checkWeddingCode()
 {
-  $result = objects\Wedding::validateWeddingCode($_GET['code']);
-  if($result instanceof helpers\errorHandler) {
-    showLogin(['errormessage' => $result->errorMessage]);
-  }
-  $_SESSION['weddingID'] = $result;
+  try { $wedding = objects\Wedding::validateWeddingCode($_GET['code']); }
+  catch(Exception $e) { showLogin(['errormessage' => 'Deze link is niet geldig']); }
+  $_SESSION['username'] = null;
+  $_SESSION['weddingID'] = $wedding->get('id');
 }
 
 function handleVisitWedding()
 {
   $renderOptions = array();
-  $wedding = objects\Wedding::getWedding($_SESSION['weddingID']);
-  if($wedding == null) showLogin(['errormessage' => 'Bruiloft bestaat niet meer']);
+  try { $wedding = objects\Wedding::getWedding($_SESSION['weddingID']); }
+  catch(Exception $e) { showLogin([]); }
+
   $renderOptions['person1'] = $wedding->person1;
   $renderOptions['person2'] = $wedding->person2;
   $renderOptions['date'] = $wedding->weddingdate;
   $renderOptions['gifts'] = $wedding->gifts;
   $renderOptions['action'] = 'home';
+
+  // stel afbeeldingpaden en enabled / disabled button in
   foreach($wedding->gifts as $gift) {
     if($gift->claimed) $gift->disabled = 'disabled';
     else $gift->disabled = null;
-    if($gift->image) $gift->imageSrc = 'public/img/gifts/' . $gift->image;
-    else $gift->imageSrc = 'public/img/gifts/default.png';
+    if($gift->image) $gift->imageSrc = GIFTS_IMG_PATH.$gift->image;
+    else $gift->imageSrc = GIFTS_IMG_PATH.'default.png';
   }
   render('guest.twig', $renderOptions);
 }

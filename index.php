@@ -41,6 +41,10 @@ function handleUser()
   $renderOptions['gifts'] = $user->wedding->gifts;
   $renderOptions['linkingcode'] = $user->wedding->linkingcode;
 
+  if($user->wedding->image) $renderOptions['image']= WEDDINGS_IMG_PATH.$user->wedding->image;
+  else $renderOptions['image'] = WEDDINGS_IMG_PATH.'default.jpg';
+  
+
   // gebruiker en bruiloft bekend, request naar bewerk bruiloft
   if (isset($_GET['action']) && $_GET['action'] == 'bewerken') {
     $renderOptions['action'] = 'edit';

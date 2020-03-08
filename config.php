@@ -13,4 +13,5 @@ define('MAIL_PASSWORD', '8d487d46a45a65');
 define('MAIL_SMTP', 'smtp.mailtrap.io');
 define('MAIL_FROM', ['info@bruidenapp.nl' => 'BruidenApp']);
 define('GIFTS_IMG_PATH', 'public/img/gifts/');
+define('WEDDINGS_IMG_PATH', 'public/img/weddings/');
 ?>

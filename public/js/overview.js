@@ -66,7 +66,11 @@ $("#weddingForm").submit(e => {
   })
     .done(res => {
       if (res.status == "successful") {
-        if (method == 'update') showSuccess('Bruiloft bijgewerkt! 💒');
+        if (method == 'update') {
+          if(res.message.wedding.image != null) $('#weddingimage').attr('src', `public/img/weddings/${res.message.wedding.image}`)
+          $('input[name="image"').val(null);
+          showSuccess('Bruiloft bijgewerkt! 💒');
+        }
         else location.replace('/bruiden');
       }
       else showError(res.responseJSON.message);

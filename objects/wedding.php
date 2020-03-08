@@ -11,6 +11,7 @@ class Wedding {
         public $invitecode;
         public $linkingcode;
         public $gifts = array();
+        public $image;
         private $conn;
 
                 
@@ -25,7 +26,7 @@ class Wedding {
          * @param  string $linkingcode
          * @return void
          */
-        function __construct($id, $person1, $person2, $weddingdate, $invitecode, $linkingcode)
+        function __construct($id, $person1, $person2, $weddingdate, $invitecode, $linkingcode, $image)
         {
             $db =new \Database();
             $this->conn = $db->conn;
@@ -35,6 +36,7 @@ class Wedding {
             $this->weddingdate = $weddingdate;
             $this->invitecode = $invitecode;
             $this->linkingcode = $linkingcode;
+            $this->image = $image;
         }
 
         function get($element) 
@@ -51,12 +53,13 @@ class Wedding {
         {
             $this->weddingdate = str_replace('/', '-', $this->weddingdate);
             $this->weddingdate = date("Y-m-d", strtotime($this->weddingdate));
-            $query = "UPDATE Weddings SET name_person1=:nameperson1, name_person2=:nameperson2, linkingcode=:linkingcode, weddingdate=:weddingdate WHERE weddingId=:weddingid";
+            $query = "UPDATE Weddings SET name_person1=:nameperson1, name_person2=:nameperson2, linkingcode=:linkingcode, weddingdate=:weddingdate, image=:image WHERE weddingId=:weddingid";
             $stmt = $this->conn->prepare($query);
             $stmt->bindValue(':nameperson1', $this->person1);
             $stmt->bindValue(':nameperson2', $this->person2);
             $stmt->bindValue(':linkingcode', $this->linkingcode);
             $stmt->bindValue(':weddingdate', $this->weddingdate);
+            $stmt->bindValue(':image', $this->image);
             $stmt->bindValue(':weddingid', $this->id);
             $result = $stmt->execute();
             return $result;
@@ -112,7 +115,7 @@ class Wedding {
             if($stmt->rowCount() !== 1) throw new \Exception('Bruiloft kan niet worden gevonden', 404);
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
 
-            $wedding = new Self($result['weddingId'], $result['name_person1'], $result['name_person2'], $result['formateddate'], $result['invitecode'],$result['linkingcode']);
+            $wedding = new Self($result['weddingId'], $result['name_person1'], $result['name_person2'], $result['formateddate'], $result['invitecode'],$result['linkingcode'],$result['image']);
             $wedding->getGifts();
             return $wedding;
         }
@@ -133,7 +136,7 @@ class Wedding {
             $stmt->execute([$weddingcode]);
             if($stmt->rowCount() != 1) throw new \Exception('Deze code is niet geldig! Neem contact op met het bruidspaar.', 404);
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
-            return new self($result['weddingId'], $result['name_person1'], $result['name_person2'], $result['weddingdate'], $result['invitecode'], $result['linkingcode']);
+            return new self($result['weddingId'], $result['name_person1'], $result['name_person2'], $result['weddingdate'], $result['invitecode'], $result['linkingcode'], $result['image']);
         }
         
         /**
@@ -156,7 +159,7 @@ class Wedding {
             if($stmt->rowCount() != 1) throw new \Exception('Deze code is niet geldig!', 404);
 
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
-            return new self($result['weddingId'], $result['name_person1'], $result['name_person2'], $result['weddingdate'], $result['invitecode'], $result['linkingcode']);
+            return new self($result['weddingId'], $result['name_person1'], $result['name_person2'], $result['weddingdate'], $result['invitecode'], $result['linkingcode'], $result['image']);
         }
         
         /**

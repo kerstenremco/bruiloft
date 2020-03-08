@@ -118,11 +118,11 @@ function checkUserHasWedding($user, $musthavewedding)
     }
 }
 
-function handleImage()
+function handleImage($type)
 {
     if (($_FILES['image']['size'] > 0)) {
         try {
-            $img = new \helpers\imageHandler('gift', $_FILES['image']);
+            $img = new \helpers\imageHandler($type, $_FILES['image']);
             $image = $img->saveImage();
             return $image;
         } catch (Exception $e) {
@@ -155,12 +155,20 @@ function handleUpdate()
     $user = objects\User::getUser($_SESSION['username']);
     checkUserHasWedding($user, true);
 
+    $image = handleImage('wedding');
+    if (isset($image) && isset($user->wedding->image)) \helpers\imageHandler::removeImage('wedding', $user->wedding->image);
+    if (isset($image)) $user->wedding->image = $image;
+
     $user->wedding->person1 = $_POST['person1'];
     $user->wedding->person2 = $_POST['person2'];
     $user->wedding->weddingdate = $_POST['date'];
     $user->wedding->save();
 
-    helpers\successHandler::sendJSON();
+    $wedding_objects = array();
+    $wedding_objects['wedding'] = get_object_vars($user->wedding);
+    $wedding_objects['wedding']['gifts'] = null;
+
+    helpers\successHandler::sendJSON($wedding_objects);
 }
 
 function handleLinkPartner()
@@ -190,7 +198,7 @@ function handleCreateGift()
     $user = \objects\User::getUser($_SESSION['username']);
     checkUserHasWedding($user, true);
 
-    $image = handleImage();
+    $image = handleImage('gift');
 
     $gift = objects\Gift::create($user->weddingId, $_POST['name'], $_POST['summary'], $image);
 
@@ -209,7 +217,7 @@ function handleUpdateGift()
     $gift = objects\Gift::getGift($user->weddingId, $_POST['oldname']);
 
     // handle image
-    $image = handleImage();
+    $image = handleImage('gift');
     if (isset($image) && isset($gift->image)) \helpers\imageHandler::removeImage('gift', $gift->image);
 
     $gift->name = $_POST['name'];

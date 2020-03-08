@@ -1,4 +1,5 @@
 .vscode
 composer.lock
 vendor/
-
+public/img/weddings/*
+public/img/gifts/*

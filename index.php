@@ -30,8 +30,10 @@ function handleUser()
 
   // bruiloft bekend, stel afbeeldingpaden in
   foreach($user->wedding->gifts as $gift) {
-    if($gift->image) $gift->imageSrc = GIFTS_IMG_PATH.$gift->image;
-    else $gift->imageSrc = GIFTS_IMG_PATH.'default.png';
+    if($gift->image) {
+      $gift->imageSrc = GIFTS_IMG_PATH.$gift->image;
+      $gift->ownimage = 'ownimage';
+    } else $gift->imageSrc = GIFTS_IMG_PATH.'default.png';
   }
   $renderOptions['hasWedding'] = true;
   $renderOptions['person1'] = $user->wedding->person1;
@@ -92,8 +94,10 @@ function handleVisitWedding()
   foreach($wedding->gifts as $gift) {
     if($gift->claimed) $gift->disabled = 'disabled';
     else $gift->disabled = null;
-    if($gift->image) $gift->imageSrc = GIFTS_IMG_PATH.$gift->image;
-    else $gift->imageSrc = GIFTS_IMG_PATH.'default.png';
+    if($gift->image) {
+      $gift->imageSrc = GIFTS_IMG_PATH.$gift->image;
+      $gift->ownimage = 'ownimage';
+    } else $gift->imageSrc = GIFTS_IMG_PATH.'default.png';
   }
   render('guest.twig', $renderOptions);
 }

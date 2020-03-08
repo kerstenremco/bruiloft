@@ -59,7 +59,7 @@
             {% for gift in gifts %}
             <tr>
               <td>
-                <img src="{{gift.imageSrc}}" alt="{{gift.name}}" class="img-fluid" />
+                <img src="{{gift.imageSrc}}" alt="{{gift.name}}" class="img-fluid giftimage {{gift.ownimage}}" />
               </td>
               <td>{{gift.name}}</td>
               <td>{{gift.summary}}</td>
@@ -80,8 +80,22 @@
   
 
   </div>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+  <!-- foto model -->
+<div id="imageModal" class="modal fade" tabindex="-1" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-body">
+            <img src="" width="450" height="450 " class="img-responsive">
+        </div>
+    </div>
+  </div>
+</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>  
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+  
   <script src="public/js/overview.js"></script>
 </body>
 

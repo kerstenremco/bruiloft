@@ -36,6 +36,15 @@ $(".btn-claimgift").on("click", e => {
       })
 });
 
+// handle klik op gift afbeelding
+$(document).on("click", ".giftimage", e => {
+  imagesrc = $(e.target)[0].src;
+  if($(e.target).hasClass('ownimage')) {
+    $("#imageModal").modal("show");
+    $("#imageModal").find('img').attr('src', $(e.target)[0].src);
+  }
+});
+
 // handle switch formulier bruiloft registreren
 $("#weddingFormSwitch").on("click", function() {
   currentMode = $("input[name='method']").val();
@@ -178,7 +187,10 @@ function updateRow(gift) {
   row.attr("data-name", gift.name);
   row.find(".name").text(gift.name);
   row.find(".summary").text(gift.summary);
-  if(gift.image != null) row.find("img").attr('src', `public/img/gifts/${gift.image}`);
+  if(gift.image != null) {
+    row.find("img").attr('src', `public/img/gifts/${gift.image}`);
+    row.find("img").addClass('ownimage');
+  }
 }
 
 function createRow(gift) {
@@ -188,7 +200,10 @@ function createRow(gift) {
   clone.attr("data-sequence", gift.sequence);
   clone.find(".name").text(gift.name);
   clone.find(".summary").text(gift.summary);
-  if(gift.image != null) clone.find("img").attr('src', `public/img/gifts/${gift.image}`);
+  if(gift.image != null) {
+    clone.find("img").attr('src', `public/img/gifts/${gift.image}`);
+    clone.find("img").addClass('ownimage');
+  }
   clone.removeClass("hidden");
   clone.attr("id", "");
 }

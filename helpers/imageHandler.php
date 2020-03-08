@@ -29,7 +29,14 @@ class imageHandler
 
         $path = dirname(__DIR__, 1) . $this->path . strtolower($final_name);
 
-        if (move_uploaded_file($this->image['tmp_name'], $path) == false) throw new \Exception('Fout bij opslaan afbeelding', 500);
+        // resize image
+        $imagick = new \Imagick(realpath($this->image['tmp_name']));
+        $imagick->cropThumbnailImage(800, 800);
+        
+
+        // verplaats img naar daadwerkelijke map
+        $imagick->writeImage($path);
+        //if (move_uploaded_file($this->image['tmp_name'], $path) == false) throw new \Exception('Fout bij opslaan afbeelding', 500);
 
         return $final_name;
     }

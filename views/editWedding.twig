@@ -12,7 +12,7 @@
       <!--- BIJ UPDATEN ROW ALTIJD VOORBEELDROW OOK BIJWERKEN!!!!! -->
       <tr data-name="" class="hidden" id="exampleRow">
         <td>
-          <img src="public/img/gifts/default.png" alt="" class="img-fluid" height="60" width="60" />
+          <img src="public/img/gifts/default.png" alt="" class="img-fluid giftimage" height="150" width="150" />
         </td>
         <td class="name"></td>
         <td class="summary"></td>
@@ -29,7 +29,7 @@
       {% for gift in gifts %}
       <tr data-name="{{ gift.name }}" data-sequence="{{ gift.sequence }}">
         <td>
-          <img src="{{ gift.imageSrc }}" alt="{{ gift.name }}" class="img-fluid"  height="60" width="60" />
+          <img src="{{ gift.imageSrc }}" alt="{{ gift.name }}" class="img-fluid giftimage {{gift.ownimage}}"  height="150" width="150" />
         </td>
         <td class="name">{{ gift.name }}</td>
         <td class="summary">{{ gift.summary }}</td>
@@ -50,6 +50,8 @@
 <a href="#" class="float" id="addGift">
   <i class="fa fa-plus my-float"></i>
 </a>
+
+<!-- Gift model -->
 
 <div class="modal" tabindex="-1" role="dialog" id="giftModal">
   <div class="modal-dialog" role="document">
@@ -83,6 +85,18 @@
           </button>
         </form>
       </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- foto model -->
+<div id="imageModal" class="modal fade" tabindex="-1" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-body">
+            <img src="" width="450" height="450 " class="img-responsive">
+        </div>
     </div>
   </div>
 </div>

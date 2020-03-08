@@ -60,8 +60,14 @@ function handleUser()
 
 function checkWeddingCode()
 {
+  // controleer of geen vreemde tekens bevat
+  if(preg_match("/\W/", $_GET['code'])) showLogin(['errormessage' => 'Deze link is niet geldig']);
+
+  // Zoek wedding, bij Exception stuur error
   try { $wedding = objects\Wedding::validateWeddingCode($_GET['code']); }
   catch(Exception $e) { showLogin(['errormessage' => 'Deze link is niet geldig']); }
+
+  // stel wedding ID in in session
   $_SESSION['username'] = null;
   $_SESSION['weddingID'] = $wedding->get('id');
 }

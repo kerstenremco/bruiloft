@@ -1,5 +1,5 @@
 <?php
-if($_SERVER['REQUEST_METHOD'] != 'POST') die();
+if ($_SERVER['REQUEST_METHOD'] != 'POST') die();
 header('Content-Type: application/json');
 require_once 'autoload.php';
 set_exception_handler('sendExeptionJson');
@@ -31,7 +31,29 @@ switch ($_POST['method']) {
 function checkFields($fields)
 {
     foreach ($fields as $field) {
+        // controleer of veld bestaat
         if (empty($_POST[$field])) throw new Exception('Niet alle velden zijn ingevuld', 400);
+
+        // controleer of veld voldoet aan citeria
+        switch ($field) {
+            case 'username':
+                if (preg_match("/\W/", $_POST[$field])) throw new Exception('Gebruikersnaam mag alleen uit letters en cijfers', 400);
+                break;
+            case 'password':
+                if (preg_match("/\W/", $_POST[$field])) throw new Exception('Wachtwoord mag alleen bestaan uit letters en cijfers', 400);
+                break;
+            case 'password2':
+                if (preg_match("/\W/", $_POST[$field])) throw new Exception('Wachtwoord mag alleen bestaan uit letters en cijfers', 400);
+                break;
+            case 'invitecode':
+                if (preg_match("/\W/", $_POST[$field])) throw new Exception('Invitecodes bestaan alleen uit letters en cijfers', 400);
+                break;
+            case 'email':
+                if (!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) throw new Exception('Geen geldig e-mailadres ingevuld', 400);
+                break;
+            default:
+                throw new Exception('Fout bij controleren van ' . $field, 400);
+        }
     }
 }
 

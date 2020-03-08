@@ -52,6 +52,50 @@ function checkFields($fields)
 {
     foreach ($fields as $field) {
         if (empty($_POST[$field])) throw new Exception('Niet alle velden zijn ingevuld', 400);
+
+        // controleer of veld voldoet aan citeria
+        switch ($field) {
+            case 'person1':
+                if (preg_match("/\W/", $_POST[$field])) throw new Exception('Je naam mag alleen bestaan uit letters en cijfers', 400);
+                break;
+            case 'person2':
+                if (preg_match("/\W/", $_POST[$field])) throw new Exception('De naam van je partner mag alleen bestaan uit letters en cijfers', 400);
+                break;
+            case 'date':
+                if (preg_match("/([0-9]{2})\/([0-9]{2})\/([0-9]{4})/", $_POST[$field], $matches)) {
+                    if (!checkdate($matches[2], $matches[1], $matches[3])) throw new Exception('Geen geldige datum ingevuld', 400);
+                } else throw new Exception('Vul de datum alsvolgt in: dd/mm/jjjj', 400);
+                break;
+            case 'invitecode':
+                if (preg_match("/\W/", $_POST[$field])) throw new Exception('Invitecodes bestaan alleen uit letters en cijfers', 400);
+                break;
+            case 'email':
+                if (!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) throw new Exception('Geen geldig e-mailadres ingevuld', 400);
+                break;
+            case 'linkingcode':
+                if (preg_match("/\W/", $_POST[$field])) throw new Exception('Linkcodes bestaan alleen uit letters en cijfers', 400);
+                break;
+            case 'sequence':
+                $sequence = explode(",", $_POST[$field]);
+                for ($i = 0; $i < count($sequence); $i += 2) {
+                    if (preg_match('/[^A-Za-z0-9" "\-]/', $sequence[$i])) throw new Exception('Fout in sequence string, probeer het later nogmaals', 400);
+                    if (!filter_var($sequence[$i + 1], FILTER_VALIDATE_INT)) throw new Exception('Fout in sequence string, probeer het later nogmaals', 400);
+                }
+                break;
+            case 'name':
+                $_POST[$field] = preg_replace('/[^A-Za-z0-9" "\-]/', '', $_POST[$field]);
+                trim($_POST[$field]);
+                break;
+            case 'oldname':
+                if (preg_match('/[^A-Za-z0-9" "\-]/', $_POST[$field])) throw new Exception('Fout in request', 400);
+                break;
+            case 'summary':
+                $_POST[$field] = preg_replace('/[^A-Za-z0-9" ",.:()\-]/', '', $_POST[$field]);
+                trim($_POST[$field]);
+                break;
+            default:
+                throw new Exception('Fout bij controleren van ' . $field, 400);
+        }
     }
 }
 
@@ -67,7 +111,7 @@ function checkUserVisitsWedding()
 
 function checkUserHasWedding($user, $musthavewedding)
 {
-    if($musthavewedding) {
+    if ($musthavewedding) {
         if (empty($user->wedding)) throw new Exception('Je hebt nog geen bruiloft aangemaakt', 400);
     } else {
         if (isset($user->wedding)) throw new Exception('Je hebt al een bruiloft aangemaakt', 400);
@@ -77,11 +121,11 @@ function checkUserHasWedding($user, $musthavewedding)
 function handleImage()
 {
     if (($_FILES['image']['size'] > 0)) {
-        try { 
+        try {
             $img = new \helpers\imageHandler('gift', $_FILES['image']);
             $image = $img->saveImage();
             return $image;
-        } catch(Exception $e) { 
+        } catch (Exception $e) {
             $imageError = $e->getMessage();
             return null;
         }
@@ -217,8 +261,11 @@ function handleClaimGift()
     $gift = \objects\Gift::getGift($_SESSION['weddingID'], $_POST['name']);
 
     $gift->claimed = true;
-    try { $result = $gift->save(); }
-    catch(Exception $e) { throw new Exception('Cadeau kan niet worden geclaimed, probeer het later nogmaals', 400); }
+    try {
+        $result = $gift->save();
+    } catch (Exception $e) {
+        throw new Exception('Cadeau kan niet worden geclaimed, probeer het later nogmaals', 400);
+    }
 
     helpers\successHandler::sendJSON();
 }

@@ -1,10 +1,11 @@
 <?php
     namespace objects;
     class User {
-        private $username;
+        public $username;
         private $password;
         public $email;
         public $weddingId;
+        public $person_in_wedding;
         public $wedding;
         private $conn;
         
@@ -16,34 +17,34 @@
          * @param  id $weddingId
          * @return void
          */
-        function __construct($username, $email, $weddingId)
+        function __construct($username, $email, $weddingId, $person_in_wedding)
         {
             $db =new \Database();
             $this->conn = $db->conn;
             $this->username = $username;
             $this->email = $email;
             $this->weddingId = $weddingId;
+            $this->person_in_wedding = $person_in_wedding;
         }
-
-        function get($element) 
-        {
-            return $this->$element;
-        }
-                
+        
         /**
-         * Sla huidige gebruiker op in DB. Return true indien gelukt
+         * Sla huidige gebruiker op in DB.
          *
-         * @return bool
+         * @return void
          */
         function save()
         {
-            $query = "UPDATE Users SET email=:email, weddingId=:weddingId WHERE username=:username";
+            $query = "UPDATE Users SET email=:email, weddingId=:weddingId, person_in_wedding=:person_in_wedding WHERE username=:username";
             $stmt = $this->conn->prepare($query);
+
             $stmt->bindValue(':username', $this->username);
             $stmt->bindValue(':email', $this->email);
             $stmt->bindValue(':weddingId', $this->weddingId);
-            if($stmt->execute() == false) throw new \Exception('Fout bij opslaan gebruiker, probeer het later nogmaals', 500);
-            return true;
+            $stmt->bindValue(':person_in_wedding', $this->person_in_wedding);
+
+            if($stmt->execute() == false) {
+                throw new \Exception('Fout bij opslaan gebruiker, probeer het later nogmaals', 500);
+            }
         }
 
                 
@@ -61,10 +62,17 @@
             $query = "SELECT * FROM users WHERE username=? LIMIT 1";
             $stmt = $conn->prepare($query);
             $stmt->execute([$username]);
-            if($stmt->rowCount() !== 1) throw new \Exception('Gebruikersnaam of wachtwoord verkeerd', 401);
+
+            if($stmt->rowCount() !== 1) {
+                throw new \Exception('Gebruikersnaam of wachtwoord verkeerd', 401);
+            }
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
-            if(!password_verify($password, $result['password'])) throw new \Exception('Gebruikersnaam of wachtwoord verkeerd', 401);
-            return new self($result['username'], $result['email'], $result['weddingId']);
+
+            if(!password_verify($password, $result['password'])) {
+                throw new \Exception('Gebruikersnaam of wachtwoord verkeerd', 401);
+            }
+
+            return new self($result['username'], $result['email'], $result['weddingId'], $result['person_in_wedding']);
         }
         
         /**
@@ -81,12 +89,18 @@
             $stmt = $conn->prepare($query);
             $stmt->execute([$username]);
 
-            if($stmt->rowCount() !== 1) throw new \Exception('Gebruiker niet gevonden', 404);
+            if($stmt->rowCount() !== 1) {
+                throw new \Exception('Gebruiker niet gevonden', 404);
+            }
 
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
-            $user = new Self($result['username'], $result['email'], $result['weddingId']);
+            $user = new Self($result['username'], $result['email'], $result['weddingId'], $result['person_in_wedding']);
 
-            if(isset($user->weddingId)) $user->wedding = Wedding::getWedding($user->weddingId);
+            // Als gebruiker een wedding heeft, haal wedding op
+            if(isset($user->weddingId)) {
+                $user->wedding = Wedding::getWedding($user->weddingId);
+            }
+
             return $user;
         }
         
@@ -101,9 +115,15 @@
          */
         static function createUser($username, $password, $password2, $email)
         {
-            if(strlen($password) < 8) throw new \Exception('Wachtwoord moet minimaal 8 karakters lang zijn', 400);
+            if(strlen($password) < 8) {
+                throw new \Exception('Wachtwoord moet minimaal 8 karakters lang zijn', 400);
+            }
 
-            if ($password != $password2) throw new \Exception('Wachtwoorden zijn niet gelijk', 400);
+            if ($password != $password2) {
+                throw new \Exception('Wachtwoorden zijn niet gelijk', 400);
+            }
+
+            // hash wachtwoord
             $password = password_hash($password, PASSWORD_DEFAULT);
 
             // maak gebruiker aan in DB
@@ -116,7 +136,7 @@
             $stmt->bindParam(':email', $email);
             $result = $stmt->execute();
 
-            // indien er een fout is ontstaan, geef foutmelding
+            // indien er een fout is ontstaan, geef bijbehorende foutmelding
             if($result == false) {
                 $errorCode = $stmt->errorInfo()[1];
                 switch ($errorCode) {

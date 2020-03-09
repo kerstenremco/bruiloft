@@ -4,7 +4,7 @@ namespace objects;
 use Exception;
 
 class Wedding {
-        private $id;
+    public $id;
         public $person1;
         public $person2;
         public $weddingdate;
@@ -38,12 +38,7 @@ class Wedding {
             $this->linkingcode = $linkingcode;
             $this->image = $image;
         }
-
-        function get($element) 
-        {
-            return $this->$element;
-        }
-                
+           
         /**
          * Slaat huidig object op in database
          *
@@ -53,6 +48,7 @@ class Wedding {
         {
             $this->weddingdate = str_replace('/', '-', $this->weddingdate);
             $this->weddingdate = date("Y-m-d", strtotime($this->weddingdate));
+
             $query = "UPDATE Weddings SET name_person1=:nameperson1, name_person2=:nameperson2, linkingcode=:linkingcode, weddingdate=:weddingdate, image=:image WHERE weddingId=:weddingid";
             $stmt = $this->conn->prepare($query);
             $stmt->bindValue(':nameperson1', $this->person1);
@@ -61,8 +57,10 @@ class Wedding {
             $stmt->bindValue(':weddingdate', $this->weddingdate);
             $stmt->bindValue(':image', $this->image);
             $stmt->bindValue(':weddingid', $this->id);
-            $result = $stmt->execute();
-            return $result;
+
+            if ($stmt->execute() == false) {
+                throw new \Exception('Bruiloft kan niet worden opgeslagen', 503);
+            }
         }
         
         /**
@@ -75,7 +73,9 @@ class Wedding {
          */
         static function create($person1, $person2, $weddingdate)
         {
+            // zet dd/mm/yyyy om in dd-mm-yyyy
             $weddingdate = str_replace('/', '-', $weddingdate);
+            // zet om in datum yyyy-mm-dd tbv database format
             $weddingdate = date("Y-m-d", strtotime($weddingdate));
 
             $db =new \Database();
@@ -90,16 +90,23 @@ class Wedding {
             $stmt->bindValue(':invitecode', $invitecode);
             $stmt->bindValue(':linkingcode', $linkingcode);
 
-            if($stmt->execute() == false) throw new \Exception('Bruiloft kan niet worden aangemaakt', 503);
+            if($stmt->execute() == false) {
+                throw new \Exception('Bruiloft kan niet worden aangemaakt', 503);
+            }
 
-            try { $wedding =  Self::getWedding($conn->lastInsertId()); }
-            catch(Exception $e) { throw new \Exception('Bruiloft kan niet worden aangemaakt', 503); }
+            // probeer gemaakt wedding op te halen op te verifieren dat alles goed is gegaan
+            try { 
+                $wedding =  Self::getWedding($conn->lastInsertId());
+            } catch(Exception $e) { 
+                throw new \Exception('Bruiloft kan niet worden aangemaakt', 503);
+            }
 
             return $wedding;
         }
         
         /**
          * getWedding
+         * Haal wedding op obv weddingID
          *
          * @param  int $id
          * @return wedding
@@ -112,7 +119,9 @@ class Wedding {
             $stmt = $conn->prepare($query);
             $stmt->execute([$id]);
 
-            if($stmt->rowCount() !== 1) throw new \Exception('Bruiloft kan niet worden gevonden', 404);
+            if($stmt->rowCount() !== 1) {
+                throw new \Exception('Bruiloft kan niet worden gevonden', 404);
+            }
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
 
             $wedding = new Self($result['weddingId'], $result['name_person1'], $result['name_person2'], $result['formateddate'], $result['invitecode'],$result['linkingcode'],$result['image']);
@@ -134,7 +143,11 @@ class Wedding {
             $query = "SELECT * from weddings WHERE invitecode=? LIMIT 1";
             $stmt = $conn->prepare($query);
             $stmt->execute([$weddingcode]);
-            if($stmt->rowCount() != 1) throw new \Exception('Deze code is niet geldig! Neem contact op met het bruidspaar.', 404);
+
+            if($stmt->rowCount() != 1) {
+                throw new \Exception('Deze code is niet geldig! Neem contact op met het bruidspaar.', 404);
+            }
+
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
             return new self($result['weddingId'], $result['name_person1'], $result['name_person2'], $result['weddingdate'], $result['invitecode'], $result['linkingcode'], $result['image']);
         }
@@ -156,7 +169,9 @@ class Wedding {
             $stmt->execute([$linkingcode]);
 
             // als geen wedding gevonden, stuur foutmelding
-            if($stmt->rowCount() != 1) throw new \Exception('Deze code is niet geldig!', 404);
+            if($stmt->rowCount() != 1) {
+                throw new \Exception('Deze code is niet geldig!', 404);
+            }
 
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
             return new self($result['weddingId'], $result['name_person1'], $result['name_person2'], $result['weddingdate'], $result['invitecode'], $result['linkingcode'], $result['image']);

@@ -1,6 +1,14 @@
 <?php
 namespace helpers;
-class successHandler {
+class successHandler {    
+    /**
+     * sendJSON
+     * Stuurt JSON response met success message en 200 code en stopt PHP script
+     * @param string Message
+     * @param int http response code
+     *
+     * @return void
+     */
     static function sendJSON() {
         $successCode = 200;
 

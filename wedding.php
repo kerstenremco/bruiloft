@@ -5,183 +5,201 @@ require_once 'autoload.php';
 set_exception_handler('sendExeptionJson');
 session_start();
 
-if (empty($_POST['method'])) throw new Exception('Geen methode meegegeven', 400);
+// controleer of er een methode is meegegeven.
+if (empty($_POST['method'])) {
+    throw new Exception('Geen methode meegegeven', 400);
+}
 
+// controleer aan de hand van de methode eerst of de velden juist zijn ingevuld, roep vervolgens de juiste functie aan
 switch ($_POST['method']) {
     case 'create':
-        checkFields(['person1', 'person2', 'date']);
+        helpers\validator::validatePOST(['me', 'partner', 'date']);
         handleCreate();
         break;
     case 'update':
-        checkFields(['person1', 'person2', 'date']);
+        helpers\validator::validatePOST(['me', 'partner', 'date']);
         handleUpdate();
         break;
     case 'linkpartner':
-        checkFields(['linkingcode']);
+        helpers\validator::validatePOST(['linkingcode']);
         handleLinkPartner();
         break;
     case 'updateSequence':
-        checkFields(['sequence']);
+        helpers\validator::validatePOST(['sequence']);
         handleUpdateSequence();
         break;
     case 'createGift':
-        checkFields(['name', 'summary']);
+        helpers\validator::validatePOST(['name', 'summary']);
         handleCreateGift();
         break;
     case 'updateGift':
-        checkFields(['oldname', 'name', 'summary']);
+        helpers\validator::validatePOST(['oldname', 'name', 'summary']);
         handleUpdateGift();
         break;
     case 'delete':
-        checkFields(['name']);
+        helpers\validator::validatePOST(['name']);
         handleDeleteGift();
         break;
     case 'invite':
-        checkFields(['email']);
+        helpers\validator::validatePOST(['email']);
         handleSendInvite();
         break;
     case 'claimGift':
-        checkFields(['name']);
+        helpers\validator::validatePOST(['name']);
         handleClaimGift();
         break;
     default:
         throw new Exception('Onbekende methode', 400);
 }
 
-function checkFields($fields)
+/**
+ * checkUserLoggedIn
+ * Controleer of gebruiker is ingelogd.
+ * Throw exception indien niet ingelogd.
+ *
+ * @return void
+ */
+function checkUserLoggedIn()
 {
-    foreach ($fields as $field) {
-        if (empty($_POST[$field])) throw new Exception('Niet alle velden zijn ingevuld', 400);
-
-        // controleer of veld voldoet aan citeria
-        switch ($field) {
-            case 'person1':
-                if (preg_match("/\W/", $_POST[$field])) throw new Exception('Je naam mag alleen bestaan uit letters en cijfers', 400);
-                break;
-            case 'person2':
-                if (preg_match("/\W/", $_POST[$field])) throw new Exception('De naam van je partner mag alleen bestaan uit letters en cijfers', 400);
-                break;
-            case 'date':
-                if (preg_match("/([0-9]{2})\/([0-9]{2})\/([0-9]{4})/", $_POST[$field], $matches)) {
-                    if (!checkdate($matches[2], $matches[1], $matches[3])) throw new Exception('Geen geldige datum ingevuld', 400);
-                } else throw new Exception('Vul de datum alsvolgt in: dd/mm/jjjj', 400);
-                break;
-            case 'invitecode':
-                if (preg_match("/\W/", $_POST[$field])) throw new Exception('Invitecodes bestaan alleen uit letters en cijfers', 400);
-                break;
-            case 'email':
-                if (!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) throw new Exception('Geen geldig e-mailadres ingevuld', 400);
-                break;
-            case 'linkingcode':
-                if (preg_match("/\W/", $_POST[$field])) throw new Exception('Linkcodes bestaan alleen uit letters en cijfers', 400);
-                break;
-            case 'sequence':
-                $sequence = explode(",", $_POST[$field]);
-                for ($i = 0; $i < count($sequence); $i += 2) {
-                    if (preg_match('/[^A-Za-z0-9" "\-]/', $sequence[$i])) throw new Exception('Fout in sequence string, probeer het later nogmaals', 400);
-                    if (!filter_var($sequence[$i + 1], FILTER_VALIDATE_INT)) throw new Exception('Fout in sequence string, probeer het later nogmaals', 400);
-                }
-                break;
-            case 'name':
-                $_POST[$field] = preg_replace('/[^A-Za-z0-9" "\-]/', '', $_POST[$field]);
-                $_POST[$field] = trim($_POST[$field]);
-                break;
-            case 'oldname':
-                if (preg_match('/[^A-Za-z0-9" "\-]/', $_POST[$field])) throw new Exception('Fout in request', 400);
-                break;
-            case 'summary':
-                $_POST[$field] = preg_replace('/[^A-Za-z0-9" ",.:()\-]/', '', $_POST[$field]);
-                $_POST[$field] = trim($_POST[$field]);
-                break;
-            default:
-                throw new Exception('Fout bij controleren van ' . $field, 400);
-        }
+    if (empty($_SESSION['username'])) {
+        throw new Exception('Geen gebruiker ingelogd', 403);
     }
 }
 
-function checkUserLoggedIn()
-{
-    if (empty($_SESSION['username'])) throw new Exception('Geen gebruiker ingelogd', 403);
-}
-
+/**
+ * checkUserVisitsWedding
+ * Controleer of gebruiker geldige wedding bezoekt.
+ * Throw exception indien niet.
+ *
+ * @return void
+ */
 function checkUserVisitsWedding()
 {
-    if (empty($_SESSION['weddingID'])) throw new Exception('Geen gebruiker ingelogd', 403);
+    if (empty($_SESSION['weddingID'])) {
+        throw new Exception('Geen gebruiker ingelogd', 403);
+    }
 }
 
+/**
+ * checkUserHasWedding
+ * Controleer of ingelogde gebruiker een wedding heeft of niet.
+ * Throw exception indien niet voldoet aan $musthavewedding
+ *
+ * @param  User $user
+ * @param  bool $musthavewedding -> true indien gebruiker wedding MOET hebben, false indien gebruiker GEEN wedding mag hebben
+ * @return void
+ */
 function checkUserHasWedding($user, $musthavewedding)
 {
     if ($musthavewedding) {
-        if (empty($user->wedding)) throw new Exception('Je hebt nog geen bruiloft aangemaakt', 400);
-    } else {
-        if (isset($user->wedding)) throw new Exception('Je hebt al een bruiloft aangemaakt', 400);
-    }
-}
-
-function handleImage($type)
-{
-    if (($_FILES['image']['size'] > 0)) {
-        try {
-            $img = new \helpers\imageHandler($type, $_FILES['image']);
-            $image = $img->saveImage();
-            return $image;
-        } catch (Exception $e) {
-            $imageError = $e->getMessage();
-            return null;
+        if (empty($user->wedding)) {
+            throw new Exception('Je hebt nog geen bruiloft aangemaakt', 400);
         }
     } else {
-        return null;
+        if (isset($user->wedding)) {
+            throw new Exception('Je hebt al een bruiloft aangemaakt', 400);
+        }
     }
 }
 
+/**
+ * handleCreate
+ * Maak wedding aan
+ *
+ * @return void
+ */
 function handleCreate()
 {
     checkUserLoggedIn();
 
     $user = objects\User::getUser($_SESSION['username']);
+    // controleer of gebruiker nog geen wedding heeft
     checkUserHasWedding($user, false);
 
-    $wedding = objects\Wedding::create($_POST['person1'], $_POST['person2'], $_POST['date']);
+    // Maak wedding instance
+    $wedding = objects\Wedding::create($_POST['me'], $_POST['partner'], $_POST['date']);
 
-    $user->weddingId = $wedding->get('id');
+    // Werk gebruiker bij aan de hand van aangemaakt wedding
+    $user->weddingId = $wedding->id;
+    $user->person_in_wedding = 1;
     $user->save();
+
+    // Send success JSON
     helpers\successHandler::sendJSON();
 }
 
+/**
+ * handleUpdate
+ * update wedding
+ *
+ * @return void
+ */
 function handleUpdate()
 {
     checkUserLoggedIn();
 
     $user = objects\User::getUser($_SESSION['username']);
+    // controleer of user wedding heeft
     checkUserHasWedding($user, true);
 
-    $image = handleImage('wedding');
-    if (isset($image) && isset($user->wedding->image)) \helpers\imageHandler::removeImage('wedding', $user->wedding->image);
-    if (isset($image)) $user->wedding->image = $image;
+    // Als er een afbeelding is meegestuurd, verwerk deze
+    if($_FILES['image']['size'] > 0) {
+        $img = new helpers\imageHandler('wedding', $_FILES['image']);
+        $image = $img->saveImage();
+    }
 
-    $user->wedding->person1 = $_POST['person1'];
-    $user->wedding->person2 = $_POST['person2'];
+    // Als er een nieuwe afbeelding is geupload en er al een afbeelding was, verwijder deze
+    if (isset($image) && isset($user->wedding->image)) {
+        \helpers\imageHandler::removeImage('wedding', $user->wedding->image);
+    }
+
+    // Stel nieuw afbeeldingspad in op instance (indien beschikbaar)
+    if (isset($image)) {
+        $user->wedding->image = $image;
+    }
+
+    // controleer wie er is ingelogd om de persoon namen aan te passen
+    if ($user->person_in_wedding == 1) {
+        $user->wedding->person1 = $_POST['me'];
+        $user->wedding->person2 = $_POST['partner'];
+    } else if ($user->person_in_wedding == 2) {
+        $user->wedding->person1 = $_POST['partner'];
+        $user->wedding->person2 = $_POST['me'];
+    }
+
     $user->wedding->weddingdate = $_POST['date'];
     $user->wedding->save();
 
+    // Zet alle variabelen vana wedding om in array voor JSON response
     $wedding_objects = array();
     $wedding_objects['wedding'] = get_object_vars($user->wedding);
+    // Verwijder gifts uit array (niet nodig)
     $wedding_objects['wedding']['gifts'] = null;
 
     helpers\successHandler::sendJSON($wedding_objects);
 }
 
+/**
+ * handleLinkPartner
+ * Link gebruiker aan opgegeven linkcode
+ *
+ * @return void
+ */
 function handleLinkPartner()
 {
     checkUserLoggedIn();
 
     $user = objects\User::getUser($_SESSION['username']);
+    // controleer of gebruiker nog geen wedding heeft
     checkUserHasWedding($user, false);
 
+    // Haal wedding op welke bij linkcode hoort
     $wedding = objects\Wedding::validateLinkingCode($_POST['linkingcode']);
 
     // stel weding ID in bij user
-    $user->weddingId = $wedding->get('id');
+    $user->weddingId = $wedding->id;
+    // aangezien het een linkcode betreft, is dit person2 in de wedding
+    $user->person_in_wedding = 2;
     $user->save();
 
     // verwijder linking code
@@ -191,66 +209,112 @@ function handleLinkPartner()
     helpers\successHandler::sendJSON();
 }
 
+/**
+ * handleCreateGift
+ * Maak gift aan
+ *
+ * @return void
+ */
 function handleCreateGift()
 {
     checkUserLoggedIn();
 
     $user = \objects\User::getUser($_SESSION['username']);
+    // controleer of gebruiker wedding heeft
     checkUserHasWedding($user, true);
+;
+    // Als er een afbeelding is meegestuurd, verwerk deze
+    if($_FILES['image']['size'] > 0) {
+        $img = new helpers\imageHandler('gift', $_FILES['image']);
+        $image = $img->saveImage();
+    } else {
+        $image = null;
+    }
 
-    $image = handleImage('gift');
-
+    // maak gift aan
     $gift = objects\Gift::create($user->weddingId, $_POST['name'], $_POST['summary'], $image);
 
+    // Zet gift om in array tbv JSON response
     $gift_objects = array();
     $gift_objects['gift'] = get_object_vars($gift);
+
     helpers\successHandler::sendJSON($gift_objects);
 }
 
+/**
+ * handleUpdateGift
+ * update een gift
+ *
+ * @return void
+ */
 function handleUpdateGift()
 {
     checkUserLoggedIn();
 
     $user = \objects\User::getUser($_SESSION['username']);
+    // controleer of gebruiker wedding heeft
     checkUserHasWedding($user, true);
 
+    // haal gift op
     $gift = objects\Gift::getGift($user->weddingId, $_POST['oldname']);
 
-    // handle image
-    $image = handleImage('gift');
-    if (isset($image) && isset($gift->image)) \helpers\imageHandler::removeImage('gift', $gift->image);
+    // Als er een afbeelding is meegestuurd, verwerk deze
+    if($_FILES['image']['size'] > 0) {
+        $img = new helpers\imageHandler('gift', $_FILES['image']);
+        $image = $img->saveImage();
+    }
 
+    // Als er een nieuwe afbeelding is geupload en er al een afbeelding was, verwijder deze
+    if (isset($image) && isset($gift->image)) {
+        \helpers\imageHandler::removeImage('gift', $gift->image);
+    }
+
+    // werk gift bij
     $gift->name = $_POST['name'];
     $gift->summary = $_POST['summary'];
     if (isset($image)) $gift->image = $image;
     $gift->save();
 
+    // zet gift claimed op null tbv response (nee, bruiden mogen niet in de response zien dat hun gift is geclaimed =D)
     $gift->claimed = null;
     $gift_objects = array();
     $gift_objects['gift'] = get_object_vars($gift);
+    
     helpers\successHandler::sendJSON($gift_objects);
 }
 
+/**
+ * handleUpdateSequence
+ * Update de volgorde van gifts bij een bepaalde wedding
+ * 
+ * @return void
+ */
 function handleUpdateSequence()
 {
     checkUserLoggedIn();
 
     $user = \objects\User::getUser($_SESSION['username']);
+    // heeft gebruiker een wedding?
     checkUserHasWedding($user, true);
 
-    // zet form element om naar array
+    // zet form element om naar array (naam,pos,naam,pos => [naam, pos, naam, pos])
     $sequence = explode(",", $_POST['sequence']);
 
     // Loop door cadeaus en update order
     for ($i = 0; $i < count($sequence); $i += 2) {
-        $gift = objects\Gift::getGift($user->weddingId, $sequence[$i]);
-        $gift->sequence = $sequence[$i + 1];
-        $gift->save();
+        // update gift
+        objects\Gift::updateSequence($sequence[$i], $user->weddingId, $sequence[$i+1]);
     }
 
     helpers\successHandler::sendJSON();
 }
 
+/**
+ * handleDeleteGift
+ * Verwijder een gift
+ *
+ * @return void
+ */
 function handleDeleteGift()
 {
     checkUserLoggedIn();
@@ -262,22 +326,28 @@ function handleDeleteGift()
     helpers\successHandler::sendJSON();
 }
 
+/**
+ * handleClaimGift
+ * Claim een gift
+ *
+ * @return void
+ */
 function handleClaimGift()
 {
     checkUserVisitsWedding();
 
-    $gift = \objects\Gift::getGift($_SESSION['weddingID'], $_POST['name']);
-
-    $gift->claimed = true;
-    try {
-        $result = $gift->save();
-    } catch (Exception $e) {
-        throw new Exception('Cadeau kan niet worden geclaimed, probeer het later nogmaals', 400);
-    }
+    // Claim gift
+    \objects\Gift::claimGift($_POST['name'], $_SESSION['weddingID']);
 
     helpers\successHandler::sendJSON();
 }
 
+/**
+ * handleSendInvite
+ * Stuur uitnodiginsmail naar gast
+ *
+ * @return void
+ */
 function handleSendInvite()
 {
 
@@ -286,14 +356,15 @@ function handleSendInvite()
     $user = objects\User::getUser($_SESSION['username']);
     checkUserHasWedding($user, true);
 
-    // haal wedding op
-    $wedding = objects\Wedding::getWedding($user->weddingId);
-
     // verstuur mail
-    $link = 'http://localhost/bruiden?code=' . $user->wedding->invitecode;
-    $subject = 'Uitnodiging van ' . $user->wedding->person1 . ' en ' . $user->wedding->person2;
-    $content = 'Je bent uitgenodigd door ' . $user->wedding->person1 . ' en ' . $user->wedding->person2 . 'om hun wishlist te bekijken.<br />';
-    $content .= 'Ga naar <a href="' . $link . '">' . $link . '</a> om de wishlist te bekijken!';
+    $link = 'http://localhost/bruiden?code='.$user->wedding->invitecode;
+
+    $subject = 'Uitnodiging van '.$user->wedding->person1.' en '.$user->wedding->person2;
+
+    $content = 'Je bent uitgenodigd door '.$user->wedding->person1.' en '.$user->wedding->person2.'om hun wishlist te bekijken.<br />';
+    $content.= 'Ga naar <a href="'.$link.'">'.$link.'</a> om de wishlist te bekijken!';
+
+    // Stuur mail via helper
     $message = new helpers\sendMail($subject, $_POST['email'], $content);
     $message->sendMail();
 

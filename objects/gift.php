@@ -44,6 +44,7 @@ $database = new \Database();
         {
             $query = "UPDATE Gifts SET name=:name, summary=:summary, image=:image, sequence=:sequence, claimed=:claimed WHERE weddingId=:weddingid AND name=:originalname";
             $stmt = $this->conn->prepare($query);
+
             $stmt->bindParam(':name', $this->name);
             $stmt->bindParam(':summary', $this->summary);
             $stmt->bindParam(':image', $this->image);
@@ -51,8 +52,59 @@ $database = new \Database();
             $stmt->bindParam(':originalname', $this->originalName);
             $stmt->bindParam(':weddingid', $this->weddingId);
             $stmt->bindParam(':claimed', $this->claimed);
-            if($stmt->execute() == false) throw new \Exception('Fout bij opslaan cadeau, probeer het later nogmaals', 500);
+
+            if($stmt->execute() == false) {
+                throw new \Exception('Fout bij opslaan cadeau, probeer het later nogmaals', 500);
+            }
         }
+        
+        /**
+         * updateSequence
+         * Werk sequence van gift bij
+         *
+         * @param  mixed $name
+         * @param  mixed $weddingId
+         * @param  mixed $sequence
+         * @return void
+         */
+        static function updateSequence($name, $weddingId, $sequence)
+        {
+            $db = new \Database();
+            $conn = $db->conn;
+            $query = "UPDATE Gifts SET sequence=:sequence WHERE weddingId=:weddingid AND name=:name";
+            $stmt = $conn->prepare($query);
+            $stmt->bindParam(':name', $name);
+            $stmt->bindParam(':weddingid', $weddingId);
+            $stmt->bindParam(':sequence', $sequence);
+
+            if($stmt->execute() == false) {
+                throw new \Exception('Fout bij verwerken van volgorde, probeer het later nogmaals', 500);
+            }
+        }
+        
+        /**
+         * claimGift
+         * Zet gift op claimed
+         *
+         * @param  mixed $name
+         * @param  mixed $weddingId
+         * @return void
+         */
+        static function claimGift($name, $weddingId)
+        {
+            $db = new \Database();
+            $conn = $db->conn;
+            $query = "UPDATE Gifts SET claimed=true WHERE weddingId=:weddingid AND name=:name";
+
+            $stmt = $conn->prepare($query);
+            $stmt->bindParam(':name', $name);
+            $stmt->bindParam(':weddingid', $weddingId);
+
+            if($stmt->execute() == false) {
+                throw new \Exception('Fout bij claimen van gift, probeer het later nogmaals', 500);
+            }
+        }
+
         
         /**
          * Haal cadeau op obv weddingid en giftnaam
@@ -71,8 +123,12 @@ $database = new \Database();
             $stmt->bindParam(':name', $giftname);
             $stmt->execute();
 
-            if($stmt->rowCount() !== 1) throw new \Exception('Cadeau niet gevonden', 404);
+            if($stmt->rowCount() !== 1) {
+                throw new \Exception('Cadeau niet gevonden', 404);
+            }
+
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+
             return new Self(
                 $result['weddingId'],
                 $result['name'],
@@ -103,7 +159,10 @@ $database = new \Database();
             if($stmt->rowCount() == 1) {
                 $result = $stmt->fetch(\PDO::FETCH_ASSOC);
                 $sequence = $result['sequence'] + 1;
-            } else $sequence = 1;
+            } else {
+                // er zijn nog geen gifts aangemaakt
+                $sequence = 1;
+            }
 
             $query = "INSERT INTO Gifts(weddingId, name, summary, image, sequence) VALUES(:weddingid, :name, :summary, :image, :sequence)";
             $stmt = $conn->prepare($query);
@@ -113,8 +172,11 @@ $database = new \Database();
             $stmt->bindParam(':image', $imagename);
             $stmt->bindParam(':sequence', $sequence);
             $stmt->execute();
-            if($stmt->rowCount() !== 1) throw new \Exception('Fout bij aanmaken cadeau, probeer het later nogmaals', 500);
-            $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+            if($stmt->rowCount() !== 1) {
+                throw new \Exception('Fout bij aanmaken cadeau, probeer het later nogmaals', 500);
+            }
+            $stmt->fetch(\PDO::FETCH_ASSOC);
 
             return new Self(
                 $weddingid,
@@ -145,17 +207,23 @@ $database = new \Database();
             $stmt->bindParam(':weddingid', $weddingid);
             $stmt->bindParam(':name', $giftname);
             $stmt->execute();
-            if($stmt->rowCount() !== 1) throw new \Exception('Cadeau niet gevonden', 404);
+            if($stmt->rowCount() !== 1) {
+                throw new \Exception('Cadeau niet gevonden', 404);
+            }
 
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
-            if(isset($result['image'])) \helpers\imageHandler::removeImage('gift', $result['image']);
+            if(isset($result['image'])) {
+                \helpers\imageHandler::removeImage('gift', $result['image']);
+            }
             
             // verwijder gift van DB en return resultaat
             $query = "DELETE FROM Gifts WHERE weddingId=:weddingid AND name=:name";
             $stmt = $conn->prepare($query);
             $stmt->bindParam(':weddingid', $weddingid);
             $stmt->bindParam(':name', $giftname);
-            if($stmt->execute() == false) throw new \Exception('Cadeau kan niet worden verwijderd, probeer het later nogmaals', 500);
+            if($stmt->execute() == false) {
+                throw new \Exception('Cadeau kan niet worden verwijderd, probeer het later nogmaals', 500);
+            }
         }
     }
 ?>

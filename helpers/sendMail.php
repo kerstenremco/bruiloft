@@ -25,8 +25,7 @@ class sendMail {
     function sendMail()
     {
         try {
-            $result = $this->mailer->send($this->message);
-            return true;
+            $this->mailer->send($this->message);
         } catch (\Exception $e) {
         throw new Exception('Fout bij versturen van email, probeer het later nogmaals', 500);
         }

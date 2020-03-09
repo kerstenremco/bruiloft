@@ -10,6 +10,7 @@ class imageHandler
     function __construct($type, $img)
     {
         $this->image = $img;
+        // stel pad in obv type
         switch ($type) {
             case 'gift':
                 $this->path = '/' . GIFTS_IMG_PATH;
@@ -19,7 +20,13 @@ class imageHandler
                 break;
         }
     }
-
+    
+    /**
+     * saveImage
+     * Resize image en sla op
+     *
+     * @return string pad van image
+     */
     function saveImage()
     {
         $ext = strtolower(pathinfo($this->image['name'], PATHINFO_EXTENSION));
@@ -36,11 +43,18 @@ class imageHandler
 
         // verplaats img naar daadwerkelijke map
         $imagick->writeImage($path);
-        //if (move_uploaded_file($this->image['tmp_name'], $path) == false) throw new \Exception('Fout bij opslaan afbeelding', 500);
 
         return $final_name;
     }
-
+    
+    /**
+     * removeImage
+     * verwijder image
+     *
+     * @param  string $type
+     * @param  string $imgname
+     * @return void
+     */
     static function removeImage($type, $imgname)
     {
         switch ($type) {

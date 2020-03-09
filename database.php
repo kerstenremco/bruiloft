@@ -14,8 +14,8 @@
             try {
                 $this->conn = new PDO($this->dsn, DB_USER, DB_PASSWORD, $this->options);
             } catch (\PDOException $e) {
-                $error = new helpers\errorHandler('Fout met DB verbinding', 503);
-                $error->sendJSON();
+                echo 'Fout met verbinden database!';
+                die();
            }
         }
     }

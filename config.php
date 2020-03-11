@@ -2,7 +2,7 @@
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-define('CONF_DIRECTORY', 'bruiden/');
+define('DOMAIN', 'http://bruiden.local/');
 define('DB_NAME', 'bruiden');
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');

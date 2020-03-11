@@ -357,7 +357,7 @@ function handleSendInvite()
     checkUserHasWedding($user, true);
 
     // verstuur mail
-    $link = 'http://localhost/bruiden?code='.$user->wedding->invitecode;
+    $link = DOMAIN.'?code='.$user->wedding->invitecode;
 
     $subject = 'Uitnodiging van '.$user->wedding->person1.' en '.$user->wedding->person2;
 

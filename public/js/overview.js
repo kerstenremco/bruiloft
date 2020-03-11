@@ -11,7 +11,7 @@ $("#uitloggen").on("click", () => {
     processData:false,
   })
     .done(res => {
-      if (res.status == "successful") location.replace('/bruiden');
+      if (res.status == "successful") location.replace('/');
       })
 });
 
@@ -80,7 +80,7 @@ $("#weddingForm").submit(e => {
           $('input[name="image"').val(null);
           showSuccess('Bruiloft bijgewerkt! 💒');
         }
-        else location.replace('/bruiden');
+        else location.replace('/');
       }
       else showError(res.responseJSON.message);
     })

@@ -45,7 +45,7 @@ $('#loginform').submit(e => {
     processData:false,
   })
     .done(res => {
-      if (res.status === "successful") location.replace("/bruiden");
+      if (res.status === "successful") location.replace("/");
       else showError(res.responseJSON.message);
     })
     .fail(res => showError(res.responseJSON.message));

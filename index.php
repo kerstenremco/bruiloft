@@ -94,6 +94,7 @@ function handleUser() {
       render('base.twig', $renderOptions);
     } else if ($_GET['action'] == 'uitnodigen') {
       $renderOptions['action'] = 'invite';
+      $renderOptions['subheader'] = 'Nodig iemand per mail uit, of met de uitnodigingscode: '.$user->wedding->invitecode;
       render('base.twig', $renderOptions);
     }
   }

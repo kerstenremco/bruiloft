@@ -3,7 +3,9 @@ $(document).ready(() => {
     $("#wishlistTable tbody").sortable({
         update: function(event, ui) {
             $(this).children().each(function(index) {
+                // loop alle rijen af
                 if($(this).attr('data-sequence') != index) {
+                    // attribuut is niet gelijk aan huidige index
                     $(this).attr('data-sequence', index);
                     $(this).attr('data-updated', true);
                 } else {
